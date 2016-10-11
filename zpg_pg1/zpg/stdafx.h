@@ -68,3 +68,4 @@
 #include "objloader.h"
 
 #include "camera.h"
+#include "Scene.h"

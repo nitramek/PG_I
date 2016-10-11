@@ -7,7 +7,9 @@ class Scene
 	std::vector<Material *> materials;
 	RTCScene scene;
 public:
-	Scene();
+	Scene(RTCDevice& device);
 	~Scene();
+
+	void draw();
 };
 

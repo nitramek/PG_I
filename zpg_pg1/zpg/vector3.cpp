@@ -101,6 +101,11 @@ void Vector3::Print()
 	//printf( "_point %0.3f,%0.3f,%0.3f\n", x, y, z );
 }
 
+cv::Vec3f Vector3::toCV()
+{
+	return cv::Vec3f(this->x, this->y, this->z);
+}
+
 // --- operátory ------
 
 Vector3 operator-( const Vector3 & v )

@@ -115,6 +115,8 @@ public:
 
 	void Print();
 
+	cv::Vec3f toCV();
+
 	// --- operátory ------
 
 	friend Vector3 operator-( const Vector3 & v );
