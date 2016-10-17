@@ -39,6 +39,9 @@ template<typename T> void SafeDeleteVectorItems( std::vector<T> v )
 		SAFE_DELETE( item );
 	}
 }
+enum Direction {
+		FRONT, RIGHT, TOP, BACK, LEFT, BOTTOM
+};
 
 namespace utils
 {

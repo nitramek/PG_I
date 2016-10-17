@@ -1,5 +1,6 @@
 #ifndef VECTOR3_H_
 #define VECTOR3_H_
+#include "stdafx.h"
 
 /*! \struct Vector3
 \brief Trojrozmìrný (3D) vektor.
@@ -111,7 +112,9 @@ public:
 
 	\return Index nejvìtší složky vektoru.
 	*/
-	char LargestComponent( const bool absolute_value = false );	
+	char LargestComponent( const bool absolute_value = false );
+
+	Direction LargestComponentSigned();
 
 	void Print();
 

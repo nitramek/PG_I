@@ -59,6 +59,14 @@ public:
 	*/
 	Color4 get_texel( const float u, const float v );
 
+	/*! \fn Texture * LoadTexture( const char * file_name )
+	\brief Naète texturu z obrazového souboru \a file_name.
+	\param file_name úplná cesta k obrazovému souboru vèetnì pøípony.
+	\param flip 0 vertikální nebo 1 horizontální flip obrazu
+	\param single_channel vynutí naètení jednokanálové obrazu.
+	*/
+	static Texture * loadTexture(const char * file_name, const int flip = -1, const bool single_channel = false);
+
 protected:
 
 private:
@@ -69,13 +77,5 @@ private:
 
 	unsigned char * data_; //*!< Pole pixelù formátu 8UC4. */
 };
-
-/*! \fn Texture * LoadTexture( const char * file_name )
-\brief Naète texturu z obrazového souboru \a file_name.
-\param file_name úplná cesta k obrazovému souboru vèetnì pøípony.
-\param flip 0 vertikální nebo 1 horizontální flip obrazu
-\param single_channel vynutí naètení jednokanálové obrazu.
-*/
-Texture * LoadTexture( const char * file_name, const int flip = -1, const bool single_channel = false );
 
 #endif

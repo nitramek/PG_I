@@ -85,7 +85,7 @@ Color4 Texture::get_texel( const float u, const float v )
 		static_cast<float>( 1.0 / 255.0 );
 }
 
-Texture * LoadTexture( const char * file_name, const int flip, const bool single_channel )
+Texture * Texture::loadTexture( const char * file_name, const int flip, const bool single_channel )
 {
 	cv::Mat image_bgr = ( single_channel )?
 		cv::imread( file_name, 0 ) :

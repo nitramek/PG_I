@@ -39,6 +39,10 @@ struct Ray : RTCRay
 		transparency = 3.14f;
 	}
 
+	Vector3 direction() {
+		return Vector3(this->dir[0], this->dir[1], this->dir[2]);
+	}
+
 	Vector3 eval( const float t ) const
 	{
 		return Vector3(

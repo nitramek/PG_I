@@ -94,7 +94,53 @@ char Vector3::LargestComponent( const bool absolute_value )
 
 	return -1;
 }
+Direction Vector3::LargestComponentSigned() {
+	const Vector3 d = Vector3(abs(x), abs(y), abs(z));
 
+	if (d.x > d.y)
+	{
+		if (d.x > d.z)
+		{
+			if (this->x >= 0) {
+				return Direction::FRONT;
+			}
+			else {
+				return Direction::BACK;
+			}
+		}
+		else
+		{
+			if (this->z >= 0) {
+				return Direction::TOP;
+			}
+			else {
+				return Direction::BOTTOM;
+			}
+		}
+	}
+	else
+	{
+		if (d.y > d.z)
+		{
+			if (this->y >= 0) {
+				return Direction::RIGHT;
+			}
+			else {
+				return Direction::LEFT;
+			}
+			
+		}
+		else
+		{
+			if (this->z >= 0) {
+				return Direction::TOP;
+			}
+			else {
+				return Direction::BOTTOM;
+			}
+		}
+	}
+}
 void Vector3::Print()
 {
 	printf( "(%0.3f, %0.3f, %0.3f)\n", x, y, z ); 

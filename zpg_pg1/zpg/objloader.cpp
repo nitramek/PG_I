@@ -32,7 +32,7 @@ Texture * TextureProxy(const std::string & full_name, std::map<std::string, Text
 	}
 	else
 	{
-		texture = LoadTexture(full_name.c_str(),flip,single_channel);
+		texture = Texture::loadTexture(full_name.c_str(),flip,single_channel);
 		already_loaded_textures[full_name] = texture;
 	}
 

@@ -16,6 +16,7 @@
 #include <vector>
 #include <set>
 #include <random>
+#include <memory>
 #include <functional>
 
 // visual leak detector 2.5
@@ -68,4 +69,5 @@
 #include "objloader.h"
 
 #include "camera.h"
+#include "CubeMap.h"
 #include "Scene.h"
