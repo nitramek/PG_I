@@ -78,6 +78,9 @@ struct Ray : RTCRay
 	Vector3 collidedNormal(std::vector<Surface*> surfaces) {
 		return surfaces[this->geomID]->get_triangle(this->primID).normal(this->u, this->v);
 	}
+	bool isCollided() {
+		return this->geomID != RTC_INVALID_GEOMETRY_ID;
+	}
 };
 
 

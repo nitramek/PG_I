@@ -10,7 +10,11 @@ class Scene
 
 	uint width;
 	uint height;
-	Vector3 trace(Ray,uint nest);
+	
+	Camera* camera;
+	OmniLight* light;
+
+	Vector3 trace(Ray& ray, uint nest);
 public:
 	Scene(RTCDevice& device, uint width, uint height);
 	~Scene();

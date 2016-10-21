@@ -43,6 +43,10 @@ public:
 	*/
 	Vector3() : x( 0 ), y( 0 ), z( 0 ) { }	
 
+	/*
+		Vsechny slozky stejne velke
+	*/
+	Vector3(const float x) :x(x), y(x), z(x) {}
 	//! Obecný konstruktor.
 	/*!
 	Inicializuje složky vektoru podle zadaných hodnot parametrù,
@@ -81,7 +85,7 @@ public:
 	*/
 	Vector3& normalize();
 
-	Vector3 reflect() const;
+	Vector3 reflect(const Vector3& reflectBy) const;
 
 	//! Vektorový souèin.
 	/*!

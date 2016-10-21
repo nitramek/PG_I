@@ -6,8 +6,7 @@ namespace embree_structs
 	typedef Vertex Normal;
 	struct Triangle { int v0, v1, v2; };
 };
-
-Scene::Scene(RTCDevice & device, uint width, uint height) :cubeMap()
+Scene::Scene(RTCDevice & device, uint width, uint height)
 {
 	this->width = width;
 	this->height = height;
@@ -53,6 +52,10 @@ Scene::Scene(RTCDevice & device, uint width, uint height) :cubeMap()
 		rtcUnmapBuffer(scene, geom_id, RTC_INDEX_BUFFER);
 	}
 	rtcCommit(scene);
+	this->camera = new Camera(width, height, Vector3(-400.f, -500.f, 370.f),
+		Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
+	this->light = new OmniLight(this->camera->view_from(), 
+		Vector3(0.1f), Vector3(1.f) , Vector3(1.f));
 }
 Scene::~Scene()
 {
@@ -61,81 +64,74 @@ Scene::~Scene()
 	SafeDeleteVectorItems<Material *>(materials);
 	SafeDeleteVectorItems<Surface *>(surfaces);
 	delete this->cubeMap;
+	delete this->camera;
+	delete this->light;
 }
+
+
+Vector3 Scene::trace(Ray& ray, uint nest)
+{
+	if(nest > 0){
+		rtcIntersect(this->scene, ray);
+		if (ray.isCollided()) {
+			//srazeno
+
+			Surface * surface = ray.collidedSurface(this->surfaces);
+			Material * material = surface->get_material();
+			Vector3 normal = ray.collidedNormal(this->surfaces);
+			Vector3 pos = ray.collidedPosition();
+
+			//vektor smerujici ke kamere
+			Vector3 cameraVector = this->camera->view_from() - pos;
+			//vektor smerujici ke svetle
+			Vector3 lightVector = this->light->position - pos;
+			Vector3 halfVector = cameraVector + lightVector;
+
+			Ray shadowRay = Ray(pos, lightVector);
+			rtcIntersect(this->scene, shadowRay);
+
+			float inShadow = shadowRay.isCollided() * 0.8f;
+			
+
+
+
+			Vector3 diffuse =
+				material->diffuse * std::max(lightVector.cosBetween(normal), 0.f) * this->light->diffuse;
+			Vector3 specular =
+				material->specular * std::pow(std::max(halfVector.cosBetween(normal), 0.f), 12) * this->light->specular;
+			Vector3 ambient = material->ambient * this->light->ambient;
+
+			Vector3 rayDirection = ray.direction();
+			Vector3 reflectedRayDirection = 2 * (-rayDirection * normal) * normal + rayDirection;
+
+			Vector3 gainedByReflection = trace(Ray(pos, reflectedRayDirection), --nest);
+			//Vector3 gainedByReflection = Vector3(0.f);
+			Vector3 outputColor = ambient + (diffuse + specular) * inShadow +
+				material->get_reflexivity() * gainedByReflection;
+			return outputColor;
+		}
+	}
+	//barva pozadi
+	Color4 texel = this->cubeMap->get_texel(ray.direction());
+	return Vector3(texel.b, texel.g, texel.r);
+	
+}
+
 
 void Scene::draw()
 {
 	//Camera camera = Camera(width, height, Vector3(0.f, 0.f, 0.f),
 	//	Vector3(-1.0f, 0.f, 0.f), DEG2RAD(120.f));
-	Camera camera = Camera(width, height, Vector3(-400.f, -500.f, 370.f),
-		Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
+	
 
-	Vector3 lightPosition(-400.f, -500.f, 370.f);
 	cv::Mat normalImg(height, width, CV_32FC3);
 	cv::Mat lambertImg(height, width, CV_32FC3);
 	for (int row = 0; row < normalImg.rows; row++) {
 		for (int col = 0; col < normalImg.cols; col++) {
-			Ray ray = camera.GenerateRay(col, row);
-			rtcIntersect(scene, ray); 
-			if (ray.geomID != RTC_INVALID_GEOMETRY_ID)
-			{
-				Surface * surface = ray.collidedSurface(this->surfaces);
-				/*Triangle * triangle = ray.collidedTriangle(surface);
-				const Vector3 normal = triangle->normal(ray.u, ray.v);*/
-				
-				//posilat v rekurzi pro omezeni na nezasah stejneho trojuhelniku
-				//surface material
-				
-				Material * material = surface->get_material();
-
-				//normala z trojuhelniku je vypoctena na konkretnim zasazeni, zatimco Ng bude pro celý trojuhelnik
-				Vector3 geometry_normal = ray.collidedNormal(this->surfaces); // Ng je nenormalizovaná normála zasaženého trojúhelníka vypoètená nesouhlasnì s pravidlem pravé ruky o závitu
-				 // normála zasaženého trojúhelníka vypoètená souhlasnì s pravidlem pravé ruky o závitu
-
-				//normalovy shader
-				Vector3 normal_ = (geometry_normal.normalize() / 2.f ) + Vector3(0.5f, 0.5f, 0.5f);
-				normalImg.at<cv::Vec3f>(row, col) = normal_.toCV();;
-
-				//lambertuv
-				Vector3 position = ray.collidedPosition();
-				Vector3 lightVector = lightPosition - position.normalize();
-
-				Vector3 diffuse = lightVector.cosBetween(geometry_normal) * surface->get_material()->diffuse;
-
-				Vector3 cameraVector = -ray.direction();
-				//Vector3 cameraVector = camera.view_at() - position;
-
-				Vector3 halfVector = cameraVector + lightVector;
-				float cosSpec = halfVector.cosBetween(geometry_normal);
-
-				Vector3 specular = std::pow(cosSpec, 4) * material->specular;
-				//misto odleskove barvy bude barva od odrazeneho paprsku
-				//zanoreni 3
-				//podminka na trefeni stejneho trojuhelniku
-
-				//stin bude ambient + (diff + spec) * shadow
-				Vector3 outputColor = (material->ambient + diffuse + specular);
-
-				lambertImg.at<cv::Vec3f>(row, col) = outputColor.toCV();
-				//L = (ambient + diff + specular) * (shadowRayOccluded) + (odleskMaterialu) * Lr
-				//smer shadowRay je paprsek ke svetlu (poziceSvetla - pozice)
-				//a Lr se urcuje paprsek vyslany odrazeny podle normaly
-			}
-			else 
-			{
-				Color4 color = this->cubeMap->get_texel(ray.direction());
-				cv::Vec3f colorCV = cv::Vec3f(color.b, color.g, color.r);
-				lambertImg.at<cv::Vec3f>(row, col) = colorCV;
-				normalImg.at<cv::Vec3f>(row, col) = colorCV;
-			}
-
+			Ray ray = camera->GenerateRay(col, row);
+			lambertImg.at<cv::Vec3f>(row, col) = this->trace(ray, 5).toCV();
 		}
 	}
-
-	//cv::cvtColor(normalImg, normalImg, CV_RGB2BGR);
-	//cv::namedWindow("NormalShader", CV_WINDOW_AUTOSIZE);
-	//cv::imshow("NormalShader", normalImg);
-	cv::cvtColor(lambertImg, lambertImg, CV_RGB2BGR);
 	cv::namedWindow("Phong", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Phong", lambertImg);
 	cv::waitKey(0);

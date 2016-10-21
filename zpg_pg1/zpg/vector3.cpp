@@ -34,9 +34,10 @@ Vector3& Vector3::normalize()
 	return *this;
 }
 
-Vector3 Vector3::reflect() const
-{
-	return Vector3();
+Vector3 Vector3::reflect(const Vector3 & reflectBy) const{
+
+	Vector3 thisV = *this;
+	return 2 * (thisV * reflectBy) - thisV;
 }
 
 Vector3 Vector3::CrossProduct( const Vector3 & v ) const
@@ -161,7 +162,7 @@ void Vector3::Print()
 
 cv::Vec3f Vector3::toCV()
 {
-	return cv::Vec3f(this->x, this->y, this->z);
+	return cv::Vec3f(this->z, this->y, this->x);
 }
 
 // --- operátory ------
