@@ -7,8 +7,12 @@ class Scene
 	std::vector<Material *> materials;
 	CubeMap* cubeMap;
 	RTCScene scene;
+
+	uint width;
+	uint height;
+	Vector3 trace(Ray,uint nest);
 public:
-	Scene(RTCDevice& device);
+	Scene(RTCDevice& device, uint width, uint height);
 	~Scene();
 
 	void draw();

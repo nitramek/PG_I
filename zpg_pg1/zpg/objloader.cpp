@@ -321,7 +321,7 @@ int LoadOBJ( const char * file_name, Vector3 & default_color,
 						{
 							sscanf( line, "%*s %f %f %f", &normal.x, &normal.y, &normal.z );
 						}
-						normal.Normalize();
+						normal.normalize();
 						per_vertex_normals.push_back( normal );
 					}
 					break;

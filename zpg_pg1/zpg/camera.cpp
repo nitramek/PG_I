@@ -62,9 +62,8 @@ Vector3 Camera::view_at() const
 float Camera::orthogonal_depth( const Vector3 & p ) const
 {
 	Vector3 axis_z_ = view_from_ - view_at_;
-	axis_z_.Normalize();
 
-	return ( p - view_from_ ).DotProduct( -axis_z_ );
+	return ( p - view_from_ ).DotProduct( -axis_z_.normalize() );
 }
 
 Vector3 Camera::ws2es( const Vector3 & p ) const
@@ -75,21 +74,16 @@ Vector3 Camera::ws2es( const Vector3 & p ) const
 Vector3 Camera::normal_ws2es( const Vector3 & p ) const
 {
 	Vector3 normal_es = view_normal_ * Vector4( p );
-	normal_es.Normalize();
 
-	return normal_es; // pøechod normály ze svìtového souøadného systému (world space) do kamerového (eye space)
+	return normal_es.normalize(); // pøechod normály ze svìtového souøadného systému (world space) do kamerového (eye space)
 }
 
 void Camera::BuildViewMatrix()
 {		
 	Vector3 axis_z_ = view_from_ - view_at_;
-	axis_z_.Normalize();
 	const Vector3 up = Vector3( 0, 0, 1 );
-	Vector3 axis_x_ = up.CrossProduct( axis_z_ );
-	axis_x_.Normalize(); // renormalizace je tady nutná
-	Vector3 axis_y_ = axis_z_.CrossProduct( axis_x_ );
-	axis_y_.Normalize(); // renormalizace je tady nutná
-
+	Vector3 axis_x_ = up.CrossProduct( axis_z_.normalize() ); // renormalizace je tady nutná
+	Vector3 axis_y_ = axis_z_.CrossProduct(axis_x_.normalize()).normalize(); // renormalizace je tady nutná
 	view_.set( 0, 0, axis_x_.x );
 	view_.set( 0, 1, axis_y_.x );
 	view_.set( 0, 2, axis_z_.x );
@@ -126,12 +120,11 @@ Ray Camera::GenerateRay(const float sx, const float sy) const
 	const float x = pixel_size_ * (sx - 0.5f * (width_ - 1));
 	const float y = pixel_size_ * (-sy + 0.5f * (height_ - 1));
 
-	Vector3 direction = Vector3(x, y, -d_); // smìr nového paprsku v kamerovém prostoru	
+	Vector3 direction = Vector3(x, y, -d_).normalize(); // smìr nového paprsku v kamerovém prostoru	
 	//d je focal length
-	direction.Normalize();
 
 	direction = view_t_ * direction; // pøechod do svìtového souøadného systému
-	direction.Normalize();
+	direction.normalize();
 	
 	return Ray(view_from_, direction, 0);
 	//sx, sy pixely  - 

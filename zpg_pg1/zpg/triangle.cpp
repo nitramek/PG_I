@@ -13,12 +13,12 @@ Triangle::Triangle( const Vertex & v0, const Vertex & v1, const Vertex & v2, Sur
 	const Vector2 duv2 = v2.texture_coords[0] - v0.texture_coords[0];
 	const float rd = 1 / ( duv1.x * duv2.y - duv1.y * duv2.x );
 	vertices_[0].tangent = ( e1 * duv2.y - e2 * duv1.y ) * rd;		
-	vertices_[0].tangent.Normalize(); // tím odpadá nutnost poèítat s rd
+	vertices_[0].tangent.normalize(); // tím odpadá nutnost poèítat s rd
 	//vertices_[0].tangent *= -1;
 	vertices_[1].tangent = vertices_[0].tangent;
 	vertices_[2].tangent = vertices_[0].tangent;
 	Vector3 bitangent = ( e2 * duv1.x - e1 * duv2.x ) * rd;
-	bitangent.Normalize();
+	bitangent.normalize();
 	if ( fabs( vertices_[0].tangent.L2Norm() - 1 ) > 0.0001 )
 	{
 		vertices_[0].tangent.Print();
@@ -57,7 +57,7 @@ Vector3 Triangle::normal( const Vector3 & p, Vector2 * texture_coord )
 	Vector3 normal = u * vertices_[2].normal +
 		v * vertices_[1].normal +
 		( 1 - u - v ) * vertices_[0].normal;
-	normal.Normalize();
+	normal.normalize();
 
 	if ( texture_coord != NULL )
 	{
@@ -74,7 +74,7 @@ Vector3 Triangle::normal( const float u, const float v )
 	Vector3 normal = u * vertices_[1].normal +
 		v * vertices_[2].normal +
 		( 1.0f - u - v ) * vertices_[0].normal;
-	normal.Normalize();
+	normal.normalize();
 
 	return normal;
 }

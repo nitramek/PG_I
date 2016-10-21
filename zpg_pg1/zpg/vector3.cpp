@@ -19,18 +19,24 @@ float Vector3::SqrL2Norm() const
 	return SQR( x ) + SQR( y ) + SQR( z );
 }
 
-void Vector3::Normalize()
+Vector3& Vector3::normalize() 
 {
-	const float norm = SqrL2Norm();
+	const float norm = this->SqrL2Norm();
 
 	if ( norm != 0 )
 	{
 		const float rn = 1 / sqrt( norm );
 
-		x *= rn;
-		y *= rn;
-		z *= rn;
+		this->x *= rn;
+		this->y *= rn;
+		this->z *= rn;
 	}
+	return *this;
+}
+
+Vector3 Vector3::reflect() const
+{
+	return Vector3();
 }
 
 Vector3 Vector3::CrossProduct( const Vector3 & v ) const
@@ -54,6 +60,12 @@ Vector3 Vector3::Max( const float a ) const
 float Vector3::DotProduct( const Vector3 & v ) const
 {
 	return x * v.x + y * v.y + z * v.z;
+}
+
+float Vector3::cosBetween(Vector3 & v)
+{
+
+	return this->normalize().DotProduct(v.normalize());
 }
 
 /*Vector3 Vector3::Rotate( const float phi )

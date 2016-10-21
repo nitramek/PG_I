@@ -2,7 +2,7 @@
 
 Quaternion::Quaternion( Vector3 axis, const float angle )
 {
-	axis.Normalize();
+	axis.normalize();
 
 	const float half_angle = angle * static_cast<float>( 0.5 );
 	const float sin_half_angle = sin( half_angle );

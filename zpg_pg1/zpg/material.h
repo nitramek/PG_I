@@ -85,6 +85,11 @@ public:
 	*/
 	Texture * get_texture( const int slot ) const;
 
+	/**
+		Vrati reflexivitu materialu (Ms)
+	*/
+	Vector3 get_reflexivity();
+
 public:
 	Vector3 ambient; /*!< RGB barva prostøedí \f$\left<0, 1\right>^3\f$. */
 	Vector3 diffuse; /*!< RGB barva rozptylu \f$\left<0, 1\right>^3\f$. */

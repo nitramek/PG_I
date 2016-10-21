@@ -20,10 +20,10 @@ struct Ray : RTCRay
 		org[1] = origin.y;
 		org[2] = origin.z;
 
-		direction.Normalize(); // embree smerovy paprsek nenormalizuje
-		dir[0] = direction.x;
-		dir[1] = direction.y;
-		dir[2] = direction.z;
+		Vector3 directionNormalized = direction.normalize(); // embree smerovy paprsek nenormalizuje
+		dir[0] = directionNormalized.x;
+		dir[1] = directionNormalized.y;
+		dir[2] = directionNormalized.z;
 
 		tnear = t_near;
 		tfar = t_far;
@@ -49,6 +49,34 @@ struct Ray : RTCRay
 			org[0] + dir[0] * t,
 			org[1] + dir[1] * t,
 			org[2] + dir[2] * t );
+	}
+
+	Surface * collidedSurface(std::vector<Surface*> &surfaces) {
+		if (this->geomID == RTC_INVALID_GEOMETRY_ID)
+		{
+			std::cout << "No geometry was found/collided/intersected" << std::endl;
+			return nullptr;
+		}
+		else
+		{
+			return surfaces[this->geomID];
+		}
+	}
+	Triangle * collidedTriangle(Surface * surface) {
+		if (this->primID == RTC_INVALID_GEOMETRY_ID || surface != nullptr)
+		{
+			std::cout << "No primitive was found/collided/intersected" << std::endl;
+			return nullptr;
+		}
+		else {
+			return &surface->get_triangle(this->primID);
+		}
+	}
+	Vector3 collidedPosition() {
+		return this->eval(this->tfar);
+	}
+	Vector3 collidedNormal(std::vector<Surface*> surfaces) {
+		return surfaces[this->geomID]->get_triangle(this->primID).normal(this->u, this->v);
 	}
 };
 
@@ -135,7 +163,7 @@ struct RayOld
 	void set_direction( const Vector3 & direction )
 	{
 		this->direction = direction;
-		this->direction.Normalize();
+		this->direction.normalize();
 		inv_direction = Vector3( 1 / this->direction.x, 1 / this->direction.y, 1 / this->direction.z );
 		direction_sign[0] = static_cast<char>( inv_direction.x < 0 ); // 0 pro <0,+inf> a 1 pro <-inf,0)
 		direction_sign[1] = static_cast<char>( inv_direction.y < 0 );

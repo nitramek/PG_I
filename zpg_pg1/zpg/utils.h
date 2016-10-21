@@ -25,6 +25,7 @@
 		p = NULL; \
 	} \
 }
+typedef unsigned int uint;
 
 /*! \fn float template<typename T> void SafeDeleteVectorItems( std::vector<T> v )
 \brief Dealokuje všechny prvky typu T vektoru v.

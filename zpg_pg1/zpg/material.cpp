@@ -74,3 +74,8 @@ Texture * Material::get_texture( const int slot ) const
 {
 	return textures_[slot];
 }
+
+Vector3 Material::get_reflexivity() 
+{
+	return this->reflectivity * this->specular;
+}
