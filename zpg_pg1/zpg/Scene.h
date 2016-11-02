@@ -14,8 +14,9 @@ class Scene
 	Camera* camera;
 	OmniLight* light;
 
-	Vector3 trace(Ray& ray, uint nest);
+	Vector3 trace(Ray& ray, uint nest, Material const * materialBefore = nullptr);
 public:
+	void initEmbree(RTCDevice& device);
 	Scene(RTCDevice& device, uint width, uint height);
 	~Scene();
 

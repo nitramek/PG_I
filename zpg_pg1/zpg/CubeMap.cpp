@@ -3,7 +3,7 @@
 
 
 
-CubeMap::CubeMap(std::string &path)
+CubeMap::CubeMap(std::string path)
 {
 
 	this->textures[Direction::FRONT] = Texture::loadTexture((path +  "/front.jpg").c_str());

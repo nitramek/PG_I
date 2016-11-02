@@ -110,7 +110,7 @@ public:
 	/**
 	*	Oba vektory normalizuje a vrati skalarni soucin
 	*/
-	float cosBetween(Vector3 & v);
+	float cosBetween(Vector3  v);
 
 	//! Rotace.
 	/*!		
@@ -128,9 +128,11 @@ public:
 
 	Direction LargestComponentSigned();
 
-	void Print();
+	void Print() const;
 
-	cv::Vec3f toCV();
+	Vector3 refract(float n1, float n2, Vector3 normal);
+
+	cv::Vec3f toCV() const;
 
 	// --- operátory ------
 

@@ -63,7 +63,7 @@ float Vector3::DotProduct( const Vector3 & v ) const
 	return x * v.x + y * v.y + z * v.z;
 }
 
-float Vector3::cosBetween(Vector3 & v)
+float Vector3::cosBetween(Vector3  v)
 {
 
 	return this->normalize().DotProduct(v.normalize());
@@ -154,13 +154,28 @@ Direction Vector3::LargestComponentSigned() {
 		}
 	}
 }
-void Vector3::Print()
+void Vector3::Print() const
 {
 	printf( "(%0.3f, %0.3f, %0.3f)\n", x, y, z ); 
 	//printf( "_point %0.3f,%0.3f,%0.3f\n", x, y, z );
 }
 
-cv::Vec3f Vector3::toCV()
+Vector3 Vector3::refract(float n1, float n2, Vector3 normal)
+{
+	Vector3 l = (*this);
+	Vector3 n = normal;
+	float c = (-n).cosBetween(l);
+	//if(c < 0)
+	//{
+	//	c = (n).cosBetween(l);
+	//}
+	float r = n1 / n2;/*0.9f;*///;1.f / 1.5f; // n1/n2	
+	float fi2 = std::sqrt(1 - std::pow(r, 2) * (1 - std::pow(c, 2)));
+	return r * l + (r * c - fi2) * n;
+
+}
+
+cv::Vec3f Vector3::toCV() const
 {
 	return cv::Vec3f(this->z, this->y, this->x);
 }

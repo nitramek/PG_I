@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <chrono>
 
 namespace embree_structs
 {
@@ -15,15 +16,8 @@ namespace embree_structs
 	};
 };
 
-Scene::Scene(RTCDevice& device, uint width, uint height)
+void Scene::initEmbree(RTCDevice& device)
 {
-	this->width = width;
-	this->height = height;
-	if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
-	{
-		throw std::exception("Could not load object");
-	}
-	this->cubeMap = new CubeMap(std::string("../../data/cubebox"));
 	this->scene = scene = rtcDeviceNewScene(device, RTC_SCENE_STATIC | RTC_SCENE_HIGH_QUALITY, RTC_INTERSECT1/* | RTC_INTERPOLATE*/);
 	for (auto* surface : this->surfaces)
 	{
@@ -62,13 +56,33 @@ Scene::Scene(RTCDevice& device, uint width, uint height)
 		rtcUnmapBuffer(scene, geom_id, RTC_INDEX_BUFFER);
 	}
 	rtcCommit(scene);
+}
+
+Scene::Scene(RTCDevice& device, uint width, uint height)
+{
+	this->width = width;
+	this->height = height;
+	if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
+	{
+		throw std::exception("Could not load object");
+	}
+	this->cubeMap = new CubeMap("../../data/cubebox");
+	this->initEmbree(device);
 	//this->camera = new Camera(width, height, Vector3(-400.f, -500.f, 370.f),
 	//	Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));
-	this->camera = new Camera(width, height, Vector3(-140.0f, -175.0f, 110.0f), Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
+	
+	Vector3 viewFrom = Vector3(-140.0f, -175.0f, 110.0f);
+	/*viewFrom.x = -50;
+	viewFrom.y -= 30;
+	viewFrom.z -= 30;*/
+	this->camera = new Camera(width, height, viewFrom, Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
+	
+	
 	//this->camera->view_from(),
-	this->light = new OmniLight(Vector3(-200, 0, 0),
+	this->light = new OmniLight(this->camera->view_from(),
 	                            Vector3(0.1f), Vector3(1.f), Vector3(1.f));
+	this->light->position.x = this->light->position.x / 2;
 }
 
 Scene::~Scene()
@@ -83,7 +97,7 @@ Scene::~Scene()
 }
 
 
-Vector3 Scene::trace(Ray& ray, uint nest)
+Vector3 Scene::trace(Ray& ray, uint nest, Material const* materialBefore)
 {
 	rtcIntersect(this->scene, ray);
 	if (ray.isCollided())
@@ -95,19 +109,22 @@ Vector3 Scene::trace(Ray& ray, uint nest)
 		Vector3 normal = ray.collidedNormal(this->surfaces);
 		Vector3 pos = ray.collidedPosition();
 		Vector2 tuv = triangle.texture_coord(ray.u, ray.v);
-
 		Vector3 lightVector = this->light->position - pos;
+		Vector3 cameraVector = -Vector3(ray.dir);
+		Vector3 halfVector = cameraVector + lightVector;
+
+		//shneluv zákon - smìry
+		//fresneul zakon R - urèuje reflexivitu
+		//pro pruhledne materialy bude zvlast vypocet - //green_plastic_transparent
+		// cos fit = -n dot odrazeny ve svetle
+		// cos fio = V dot N
+		// pro obracene normaly treba dat if na záporný cosinus a pøípadì obrátit normálu
 
 		//vektor smerujici ke kamere
 		//Vector3 cameraVector = this->camera->view_from() - pos;
-		Vector3 cameraVector = -Vector3(ray.dir);
-		//vektor smerujici ke svetle
-		Vector3 halfVector = cameraVector + lightVector;
 
-		Ray shadowRay = Ray(pos, lightVector, 0.01f, lightVector.L2Norm());
-		rtcOccluded(this->scene, shadowRay);
-		float inShadow = shadowRay.isCollided() ? 0 : 1;
-		//inShadow = 1.f;
+
+		//vektor smerujici ke svetle
 
 
 		Vector3 rayDirection = ray.direction();
@@ -115,21 +132,56 @@ Vector3 Scene::trace(Ray& ray, uint nest)
 
 		Vector3 gainedByReflection = Vector3(0.f);
 
+		Texture* diff_text = material->get_texture(Material::kDiffuseMapSlot);
+		Vector3 ambient_color = material->ambient;
+		Vector3 diffuse_color = material->diffuse;
+		Vector3 specular_color = material->specular;
+		if (diff_text != nullptr)
+		{
+			Color4 diff_texel = diff_text->get_texel(tuv.x, tuv.y);
+			diffuse_color = Vector3(diff_texel.r, diff_texel.g, diff_texel.b);
+		}
+
 		if (nest > 0)
 		{
 			Ray reflectedRay = Ray(pos, reflectedRayDirection, 0.01);
 			gainedByReflection = trace(reflectedRay, nest - 1);
 		}
-
-		Texture* diff_text = material->get_texture(Material::kDiffuseMapSlot);
-		Vector3 ambient_color = material->ambient;
-		Vector3 diffuse_color = material->diffuse;
-		Vector3 specular_color = material->specular;
-		if (diff_text != NULL)
+		if (material->get_name() == "green_plastic_transparent" && nest > 0)
 		{
-			Color4 diff_texel = diff_text->get_texel(tuv.x, tuv.y);
-			diffuse_color = Vector3(diff_texel.r, diff_texel.g, diff_texel.b);
+			float n1 = materialBefore != nullptr && materialBefore->get_name() == "green_plastic_transparent" ? 1.46f : 1.f;
+			float n2 = 1.46f; //jinak index lomu materialu
+
+			//Vector3 refract = (Vector3(0.707107, -0.707107, 0)).refract(0.9, 1, Vector3(0, 1, 0));
+			Vector3 refract = (rayDirection).refract(n1, n2, normal);
+			//odrážíme ray nebo paprsek svetla?
+
+			Ray transmitedRay(pos, refract, 0.01f);
+			Vector3 transmitedColor = this->trace(transmitedRay, nest - 1, material);
+			float theta_i = (rayDirection).cosBetween(normal);
+			if (theta_i < 0)
+			{
+				//printf("Theta i lt 0, Nest: %d, geomId: %d, primId: %d\n", nest, ray.geomID, ray.primID);
+				theta_i = (rayDirection).cosBetween(-normal);
+			}
+			float theta_t = 1;
+			refract.cosBetween(-normal);
+			if (theta_t < 0)
+			{
+				theta_t = (refract).cosBetween(normal);
+			}
+			float rs = std::pow((n1 * theta_i - n2 * theta_t) / (n1 * theta_i + n2 * theta_t), 2);
+			float rp = std::pow((n1 * theta_t - n2 * theta_i) / (n1 * theta_t + n2 * theta_i), 2);
+			float reflectivity = 0.5f * (rs + rp);
+			//float r0 = std::pow((n1-n2) / (n1 + n2),2);
+			//float reflectivity = r0 + (1 - r0)* std::pow(1 - theta_i,5);
+			float transmitivity = 1 - reflectivity;
+			return ambient_color + transmitedColor * transmitivity * diffuse_color +
+				   specular_color * gainedByReflection * reflectivity;
 		}
+		Ray shadowRay = Ray(pos, lightVector, 0.01f, lightVector.L2Norm());
+		rtcOccluded(this->scene, shadowRay);
+		float inShadow = shadowRay.isCollided() ? 0 : 1;
 		float cosLN = std::max(lightVector.cosBetween(normal), 0.f);
 		float cosHN = std::pow(std::max(halfVector.cosBetween(normal), 0.f), 2);
 
@@ -158,21 +210,25 @@ Vector3 Scene::trace(Ray& ray, uint nest)
 
 void Scene::draw()
 {
-	//Camera camera = Camera(width, height, Vector3(0.f, 0.f, 0.f),
-	//	Vector3(-1.0f, 0.f, 0.f), DEG2RAD(120.f));
-
-
-	cv::Mat normalImg(height, width, CV_32FC3);
 	cv::Mat lambertImg(height, width, CV_32FC3);
-	for (int row = 0; row < normalImg.rows; row++)
+	
+	auto start = std::chrono::system_clock::now();
+	
+	int nest = 10;
+	
+	for (int row = 0; row < lambertImg.rows; row++)
 	{
-		for (int col = 0; col < normalImg.cols; col++)
+		#pragma omp parallel for
+		for (int col = 0; col < lambertImg.cols; col++)
 		{
 			Ray ray = camera->GenerateRay(col, row);
 			ray.tnear = 0.01;
-			lambertImg.at<cv::Vec3f>(row, col) = this->trace(ray, 10).toCV();
+			lambertImg.at<cv::Vec3f>(row, col) = this->trace(ray, nest).toCV();
 		}
 	}
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	printf("Tracing for depth %d, took %f s\n", nest, diff.count());
 	cv::namedWindow("Phong", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Phong", lambertImg);
 	cv::waitKey(0);
