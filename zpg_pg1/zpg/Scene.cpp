@@ -87,7 +87,7 @@ Scene::Scene(RTCDevice& device, uint width, uint height)
 	this->light = new OmniLight(this->camera->view_from(),
 	                            Vector3(0.1f), Vector3(1.f), Vector3(1.f));
 	//this->light->position.x = this->light->position.x / 2;
-	this->light->position.y = 0.f;
+	//this->light->position.y = 0.f;
 }
 
 Scene::~Scene()
@@ -352,18 +352,19 @@ void Scene::draw()
 
 	auto start = std::chrono::system_clock::now();
 
-	int nest = 3;
+	int nest = 5;
 
 	auto binded = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
 	//not an error
 	std::unique_ptr<Tracer> tracer(new RayTracer(binded, scene));
 
+#pragma omp parallel for
 	for (int row = 0; row < lambertImg.rows; row++)
 	{
 		for (int col = 0; col < lambertImg.cols; col++)
 		{
 			Ray ray = camera->GenerateRay(col, row);
-			lambertImg.at<cv::Vec4f>(row, col) = tracer->trace(ray, 5).toCV();
+			lambertImg.at<cv::Vec4f>(row, col) = tracer->trace(ray, nest).toCV();
 			//lambertImg.at<cv::Vec3f>(row, col) = trace(ray, 5, nullptr).toCV();
 		}
 	}

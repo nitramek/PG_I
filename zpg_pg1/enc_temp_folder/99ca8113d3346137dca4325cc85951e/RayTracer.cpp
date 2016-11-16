@@ -67,7 +67,6 @@ Color4 RayTracer::trace(Ray& ray, uint nest, const Material* materialBefore) con
 				float cos_thetai_sqrt = 1 - SQR(n1 / n2) * (1 - SQR(cos_theta2));
 				if(cos_thetai_sqrt < 0)
 				{
-					//wtf to do in total reflection
 					cos_thetai_sqrt = 0.6;
 				}
 				float cos_theta1 = sqrt(cos_thetai_sqrt);
@@ -82,6 +81,8 @@ Color4 RayTracer::trace(Ray& ray, uint nest, const Material* materialBefore) con
 				float rs = std::pow((n1 * cos_theta1 - n2 * cos_theta2) / (n1 * cos_theta1 + n2 * cos_theta2), 2);
 				float rp = std::pow((n1 * cos_theta2 - n2 * cos_theta1) / (n1 * cos_theta2 + n2 * cos_theta1), 2);
 				float reflectivity = 0.5f * (rs + rp);
+				//float r0 = std::pow((n1-n2) / (n1 + n2),2);
+				//float reflectivity = r0 + (1 - r0)* std::pow(1 - theta_i,5);
 				float transmitivity = 1 - reflectivity;
 				return load.ambient_color + 
 					transmitivity * transmitedColor * load.material->diffuse + 
