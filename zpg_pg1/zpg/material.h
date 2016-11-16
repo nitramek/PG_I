@@ -88,7 +88,7 @@ public:
 	/**
 		Vrati reflexivitu materialu (Ms)
 	*/
-	Vector3 get_reflexivity();
+	Vector3 get_reflexivity() const;
 
 public:
 	Vector3 ambient; /*!< RGB barva prostøedí \f$\left<0, 1\right>^3\f$. */

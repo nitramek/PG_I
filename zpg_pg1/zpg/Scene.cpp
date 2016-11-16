@@ -4,7 +4,6 @@
 #include <random>
 
 
-
 namespace embree_structs
 {
 	struct Vertex
@@ -80,13 +79,15 @@ Scene::Scene(RTCDevice& device, uint width, uint height)
 	/*viewFrom.x = -50;
 	viewFrom.y -= 30;
 	viewFrom.z -= 30;*/
+
 	this->camera = new Camera(width, height, viewFrom, Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
 
 
 	//this->camera->view_from(),
 	this->light = new OmniLight(this->camera->view_from(),
 	                            Vector3(0.1f), Vector3(1.f), Vector3(1.f));
-	this->light->position.x = this->light->position.x / 2;
+	//this->light->position.x = this->light->position.x / 2;
+	this->light->position.y = 0.f;
 }
 
 Scene::~Scene()
@@ -100,7 +101,7 @@ Scene::~Scene()
 	delete this->light;
 }
 
-RayPayload Scene::resolveRay(Ray& collidedRay) const 
+RayPayload Scene::resolveRay(Ray& collidedRay) const
 {
 	if (collidedRay.isCollided())
 	{
@@ -108,7 +109,7 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 		const Material* material = surface->get_material();
 		Triangle& triangle = surface->get_triangle(collidedRay.primID);
 		Vector3 position = collidedRay.eval(collidedRay.tfar);
-		Vector3 normal = triangle.normal(collidedRay.u, collidedRay.v);
+		Vector3 normal = triangle.normal(collidedRay.u, collidedRay.v).normalize();
 		Vector2 texture_uv = triangle.texture_coord(collidedRay.u, collidedRay.v);
 		Color4 ambient_color = material->ambient;
 		Color4 diffuse_color = material->diffuse;
@@ -116,12 +117,12 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 		Texture* diffuseTexture = material->get_texture(Material::kDiffuseMapSlot);
 		if (diffuseTexture != nullptr)
 		{
-				diffuse_color = diffuseTexture->get_texel(texture_uv.x, texture_uv.y);
+			diffuse_color = diffuseTexture->get_texel(texture_uv.x, texture_uv.y);
 		}
 
 		const OmniLight* light = this->light;
 
-		return RayPayload{normal, position, ambient_color, diffuse_color, specular_color, light, material};
+		return RayPayload{normal, position, ambient_color, diffuse_color, specular_color, light, material, camera->view_from()};
 	}
 	else
 	{
@@ -170,9 +171,9 @@ Vector3 Scene::trace(Ray& ray, uint nest, Material const* materialBefore)
 		Vector3 gainedByReflection = Vector3(0.f);
 
 		Texture* diff_text = material->get_texture(Material::kDiffuseMapSlot);
-		Vector3 ambient_color = material->ambient;
-		Vector3 diffuse_color = material->diffuse;
-		Vector3 specular_color = material->specular;
+		Vector3 ambient_color = material->ambient * light->ambient;
+		Vector3 diffuse_color = material->diffuse * light->diffuse;
+		Vector3 specular_color = material->specular * light->specular;
 		if (diff_text != nullptr)
 		{
 			Color4 diff_texel = diff_text->get_texel(tuv.x, tuv.y);
@@ -321,7 +322,7 @@ Vector3 Scene::radiosity(Ray& ray, uint nest)
 
 		//return sum;
 		return material->ambient +
-			refractedColor * diffuse_color * normal.DotProduct(lightVector) * (1 - material->reflectivity) +
+			refractedColor * diffuse_color * normal.dot(lightVector) * (1 - material->reflectivity) +
 			material->reflectivity * material->specular * material->get_reflexivity();
 	}
 	else
@@ -352,7 +353,7 @@ void Scene::draw()
 	auto start = std::chrono::system_clock::now();
 
 	int nest = 3;
-	
+
 	auto binded = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
 	//not an error
 	std::unique_ptr<Tracer> tracer(new RayTracer(binded, scene));
@@ -363,6 +364,7 @@ void Scene::draw()
 		{
 			Ray ray = camera->GenerateRay(col, row);
 			lambertImg.at<cv::Vec4f>(row, col) = tracer->trace(ray, 5).toCV();
+			//lambertImg.at<cv::Vec3f>(row, col) = trace(ray, 5, nullptr).toCV();
 		}
 	}
 	auto end = std::chrono::system_clock::now();

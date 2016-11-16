@@ -49,7 +49,7 @@ public:
 	*/
 	Color4( const float r, const float g, const float b, const float a ) : r( r ), g( g ), b( b ), a( a ) { }
 
-	cv::Vec4f toCV() { return cv::Vec4f(b, g, r, a); }
+	cv::Vec4f toCV() const { return cv::Vec4f(b, g, r, a); }
 
 
 	//void Print();

@@ -39,11 +39,11 @@ Vector3 Triangle::normal( const Vector3 & p, Vector2 * texture_coord )
 	Vector3 v1 = vertices_[1].position - vertices_[0].position;
 	Vector3 v2 = p - vertices_[0].position;
 
-	float dot00 = v0.DotProduct( v0 );
-	float dot01 = v0.DotProduct( v1 );
-	float dot02 = v0.DotProduct( v2 );
-	float dot11 = v1.DotProduct( v1 );
-	float dot12 = v1.DotProduct( v2 );
+	float dot00 = v0.dot( v0 );
+	float dot01 = v0.dot( v1 );
+	float dot02 = v0.dot( v2 );
+	float dot11 = v1.dot( v1 );
+	float dot12 = v1.dot( v2 );
 
 	float inv_denom = 1 / ( dot00 * dot11 - dot01 * dot01 );
 	float u = ( dot11 * dot02 - dot01 * dot12 ) * inv_denom;

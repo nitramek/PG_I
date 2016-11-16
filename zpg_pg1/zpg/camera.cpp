@@ -63,7 +63,7 @@ float Camera::orthogonal_depth( const Vector3 & p ) const
 {
 	Vector3 axis_z_ = view_from_ - view_at_;
 
-	return ( p - view_from_ ).DotProduct( -axis_z_.normalize() );
+	return ( p - view_from_ ).dot( -axis_z_.normalize() );
 }
 
 Vector3 Camera::ws2es( const Vector3 & p ) const

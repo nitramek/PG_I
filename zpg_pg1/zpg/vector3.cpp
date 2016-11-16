@@ -58,7 +58,7 @@ Vector3 Vector3::Max( const float a ) const
 	return Vector3( MAX( x, a ), MAX( y, a ), MAX( z, a ) );
 }
 
-float Vector3::DotProduct( const Vector3 & v ) const
+float Vector3::dot( const Vector3 & v ) const
 {
 	return x * v.x + y * v.y + z * v.z;
 }
@@ -66,7 +66,7 @@ float Vector3::DotProduct( const Vector3 & v ) const
 float Vector3::cosBetween(Vector3  v)
 {
 
-	return this->normalize().DotProduct(v.normalize());
+	return this->normalize().dot(v.normalize());
 }
 
 /*Vector3 Vector3::Rotate( const float phi )
