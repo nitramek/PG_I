@@ -81,6 +81,19 @@ struct Ray : RTCRay
 	bool isCollided() {
 		return this->geomID != RTC_INVALID_GEOMETRY_ID;
 	}
+
+	Ray& intersect(RTCScene& scene)
+	{
+		Ray& t = *this;
+		rtcIntersect(scene, t);
+		return t;
+	}
+	Ray& occluded(RTCScene& scene)
+	{
+		Ray& t = *this;
+		rtcOccluded(scene, t);
+		return t;
+	}
 };
 
 

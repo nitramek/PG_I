@@ -43,6 +43,7 @@ template<typename T> void SafeDeleteVectorItems( std::vector<T> v )
 enum Direction {
 		FRONT, RIGHT, TOP, BACK, LEFT, BOTTOM
 };
+const double PI_2 = M_PI * 2;
 
 namespace utils
 {
