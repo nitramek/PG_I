@@ -1,6 +1,5 @@
 #pragma once
 #include "stdafx.h"
-
 class Scene
 {
 	std::vector<Surface *> surfaces;
@@ -13,6 +12,8 @@ class Scene
 	
 	Camera* camera;
 	OmniLight* light;
+
+	RayPayload resolveRay(Ray& collidedRay) const;
 
 	std::default_random_engine generator;
 	std::uniform_real_distribution<float> distribution;

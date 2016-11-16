@@ -1,6 +1,9 @@
 #include "stdafx.h"
+
 #include <chrono>
 #include <random>
+
+
 
 namespace embree_structs
 {
@@ -96,6 +99,40 @@ Scene::~Scene()
 	delete this->camera;
 	delete this->light;
 }
+
+RayPayload Scene::resolveRay(Ray& collidedRay) const 
+{
+	if (collidedRay.isCollided())
+	{
+		Surface* surface = this->surfaces[collidedRay.geomID];
+		const Material* material = surface->get_material();
+		Triangle& triangle = surface->get_triangle(collidedRay.primID);
+		Vector3 position = collidedRay.eval(collidedRay.tfar);
+		Vector3 normal = triangle.normal(collidedRay.u, collidedRay.v);
+		Vector2 texture_uv = triangle.texture_coord(collidedRay.u, collidedRay.v);
+		Color4 ambient_color = material->ambient;
+		Color4 diffuse_color = material->diffuse;
+		Color4 specular_color = material->specular;
+		Texture* diffuseTexture = material->get_texture(Material::kDiffuseMapSlot);
+		if (diffuseTexture != nullptr)
+		{
+				diffuse_color = diffuseTexture->get_texel(texture_uv.x, texture_uv.y);
+		}
+
+		const OmniLight* light = this->light;
+
+		return RayPayload{normal, position, ambient_color, diffuse_color, specular_color, light, material};
+	}
+	else
+	{
+		RayPayload rayPayload = RayPayload();
+		Color4 background = this->cubeMap->get_texel(collidedRay.direction());
+		Vector3 background_color = Vector3(background.b, background.g, background.r);
+		rayPayload.background_color = background_color;
+		return rayPayload;
+	}
+}
+
 
 Vector3 Scene::trace(Ray& ray, uint nest, Material const* materialBefore)
 {
@@ -283,9 +320,9 @@ Vector3 Scene::radiosity(Ray& ray, uint nest)
 		}
 
 		//return sum;
-		return material->ambient + 
+		return material->ambient +
 			refractedColor * diffuse_color * normal.DotProduct(lightVector) * (1 - material->reflectivity) +
-			material->reflectivity *  material->specular * material->get_reflexivity();
+			material->reflectivity * material->specular * material->get_reflexivity();
 	}
 	else
 	{
@@ -310,27 +347,22 @@ float Scene::fr(Vector3 omega_i, Vector3 omega_o)
 
 void Scene::draw()
 {
-	cv::Mat lambertImg(height, width, CV_32FC3);
+	cv::Mat lambertImg(height, width, CV_32FC4);
 
 	auto start = std::chrono::system_clock::now();
 
 	int nest = 3;
+	
+	auto binded = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
+	//not an error
+	std::unique_ptr<Tracer> tracer(new RayTracer(binded, scene));
 
 	for (int row = 0; row < lambertImg.rows; row++)
 	{
-#pragma omp parallel for
 		for (int col = 0; col < lambertImg.cols; col++)
 		{
 			Ray ray = camera->GenerateRay(col, row);
-			ray.tnear = 0.01;
-			cv::Vec3f color(0.f);
-			for (int i = 0; i < 10; ++i)
-			{
-				Ray copy = ray;
-				color += this->radiosity(copy, nest).toCV();
-			}
-			lambertImg.at<cv::Vec3f>(row, col) = (1.0f / 10.f) * color;
-			
+			lambertImg.at<cv::Vec4f>(row, col) = tracer->trace(ray, 5).toCV();
 		}
 	}
 	auto end = std::chrono::system_clock::now();

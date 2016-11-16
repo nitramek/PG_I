@@ -36,7 +36,7 @@ public:
 	*/
 	Color4() : r( 0 ), g( 0 ), b( 0 ), a( 0 ) { }
 
-	Color4( const Vector3 color, const float alpha ) : r( color.x ), g( color.y ), b( color.z ), a( alpha ) { }
+	Color4( const Vector3 color, const float alpha = 1) : r( color.x ), g( color.y ), b( color.z ), a( alpha ) { }
 
 	//! Obecný konstruktor.
 	/*!
@@ -48,6 +48,8 @@ public:
 	\param a alfa kanál.
 	*/
 	Color4( const float r, const float g, const float b, const float a ) : r( r ), g( g ), b( b ), a( a ) { }
+
+	cv::Vec4f toCV() { return cv::Vec4f(b, g, r, a); }
 
 
 	//void Print();

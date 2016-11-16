@@ -14,7 +14,7 @@ CubeMap::CubeMap(std::string path)
 	this->textures[Direction::BOTTOM] = Texture::loadTexture((path + "/bottom.jpg").c_str());
 }
 
-Color4 CubeMap::get_texel(Vector3& direction) {
+Color4 CubeMap::get_texel(Vector3 direction) const {
 	Direction dir = direction.LargestComponentSigned();
 	float u = 0, v = 0;
 

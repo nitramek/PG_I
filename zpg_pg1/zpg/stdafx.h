@@ -70,4 +70,8 @@
 
 #include "camera.h"
 #include "CubeMap.h"
+#include "RayPayload.h"
 #include "Scene.h"
+typedef std::function<RayPayload(Ray&)> RayResolver;
+#include "Tracer.h"
+#include "RayTracer.h"
