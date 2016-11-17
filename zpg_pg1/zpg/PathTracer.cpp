@@ -20,7 +20,6 @@ Color4 PathTracer::trace(Ray& ray, uint nest)
 }
 
 
-
 Color4 PathTracer::_trace(Ray& ray, uint nest)
 {
 	rtcIntersect(scene, ray);
@@ -42,7 +41,8 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		}
 		//vysledek integralu
 		Ray incomingRay = Ray(load.position, omega_i, 0.01f); //incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
-		const Color4 directColor = load.diffuse_color * load.light_vector().normalize().dot(load.normal);
+		Vector3 lightVector = load.light_vector();
+		const Color4 directColor = isInShadow(load.position, lightVector) * load.diffuse_color * lightVector.normalize().dot(load.normal);
 
 		Color4 indirectColor =
 			cosOoN * _trace(incomingRay, nest - 1) * load.material->get_reflexivity();
@@ -88,6 +88,7 @@ float PathTracer::fr(const Vector3& omega_out, const Vector3& omega_in) const
 {
 	return 0.3 / M_PI;
 }
+
 //v odmocnine je totalni odraz, tzn. R = 1
 //svetlo je to odkud prijimame paprsek tzn. v tomhle kode je to refract vector
 
