@@ -87,13 +87,16 @@
     <ClCompile Include="objloader.cpp">
       <Filter>Source Files\geom</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CubeMap.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\geom</Filter>
     </ClCompile>
     <ClCompile Include="RayTracer.cpp">
+      <Filter>Source Files\tracing</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\tracing</Filter>
+    </ClCompile>
+    <ClCompile Include="PathTracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,19 +155,22 @@
     <ClInclude Include="objloader.h">
       <Filter>Header Files\geom</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CubeMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tracer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RayTracer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\geom</Filter>
     </ClInclude>
     <ClInclude Include="RayPayload.h">
+      <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracer.h">
+      <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracer.h">
+      <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="PathTracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -39,7 +39,7 @@ Color4 RayTracer::trace(Ray& ray, uint nest, const Material* materialBefore) con
 		Color4 specular = load.specular_color * std::pow(std::max(halfVector.dot(load.normal), 0.f), 2);
 		Color4 reflected_trace = Color4(0.f);
 		float diffuseScale = (1 - load.material->reflectivity);
-	
+
 		if (nest > 0)
 		{
 			Vector3 reflectedRayDirection = (rd).reflect(load.normal);
@@ -53,19 +53,19 @@ Color4 RayTracer::trace(Ray& ray, uint nest, const Material* materialBefore) con
 				rd.normalize();
 				float n1 = materialBefore->ior;
 				float n2 = load.material->ior;
-				if(materialBefore->get_name() == "green_plastic_transparent")
+				if (materialBefore->get_name() == "green_plastic_transparent")
 				{
 					n2 = 1;
 				}
 				float cos_theta2 = (load.normal).dot(-rd);
-				if(cos_theta2 < 0)
+				if (cos_theta2 < 0)
 				{
 					load.normal = -load.normal;
 					cos_theta2 = (load.normal).dot(-rd);
 				}
-				
+
 				float cos_thetai_sqrt = 1 - SQR(n1 / n2) * (1 - SQR(cos_theta2));
-				if(cos_thetai_sqrt < 0)
+				if (cos_thetai_sqrt < 0)
 				{
 					//wtf to do in total reflection
 					cos_thetai_sqrt = 0.6;
@@ -73,7 +73,7 @@ Color4 RayTracer::trace(Ray& ray, uint nest, const Material* materialBefore) con
 				float cos_theta1 = sqrt(cos_thetai_sqrt);
 				Vector3 rr = -(n1 / n2) * rd - ((n1 / n2) * cos_theta2 + cos_theta1) * load.normal;
 				rr.normalize();
-				
+
 				Vector3 l = rr - (2 * (load.normal.dot(rr))) * load.normal;
 				Vector3 lr = -l;
 				Ray transmitedRay(load.position, lr, 0.01f);
@@ -83,9 +83,9 @@ Color4 RayTracer::trace(Ray& ray, uint nest, const Material* materialBefore) con
 				float rp = std::pow((n1 * cos_theta2 - n2 * cos_theta1) / (n1 * cos_theta2 + n2 * cos_theta1), 2);
 				float reflectivity = 0.5f * (rs + rp);
 				float transmitivity = 1 - reflectivity;
-				return load.ambient_color + 
-					transmitivity * transmitedColor * load.material->diffuse + 
-					reflectivity * reflected_trace * load.material->get_reflexivity(); 
+				return load.ambient_color +
+					transmitivity * transmitedColor * load.material->diffuse +
+					reflectivity * reflected_trace * load.material->get_reflexivity();
 			}
 		}
 

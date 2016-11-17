@@ -61,7 +61,7 @@ void Scene::initEmbree(RTCDevice& device)
 	rtcCommit(scene);
 }
 
-Scene::Scene(RTCDevice& device, uint width, uint height)
+Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing)
 {
 	this->width = width;
 	this->height = height;
@@ -69,8 +69,13 @@ Scene::Scene(RTCDevice& device, uint width, uint height)
 	{
 		throw std::exception("Could not load object");
 	}
-	this->cubeMap = new CubeMap("../../data/cubebox");
+	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox");
 	this->initEmbree(device);
+	auto resolve_ray_func = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
+	if(tracing == "RT")
+		this->tracer = std::make_unique<RayTracer>(resolve_ray_func, scene);
+	else
+		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene);
 	//this->camera = new Camera(width, height, Vector3(-400.f, -500.f, 370.f),
 	//	Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));
@@ -80,11 +85,11 @@ Scene::Scene(RTCDevice& device, uint width, uint height)
 	viewFrom.y -= 30;
 	viewFrom.z -= 30;*/
 
-	this->camera = new Camera(width, height, viewFrom, Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
+	this->camera = std::make_unique<Camera>(width, height, viewFrom, Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
 
 
 	//this->camera->view_from(),
-	this->light = new OmniLight(this->camera->view_from(),
+	this->light = std::make_unique<OmniLight>(this->camera->view_from(),
 	                            Vector3(0.1f), Vector3(1.f), Vector3(1.f));
 	//this->light->position.x = this->light->position.x / 2;
 	//this->light->position.y = 0.f;
@@ -96,9 +101,6 @@ Scene::~Scene()
 
 	SafeDeleteVectorItems<Material *>(materials);
 	SafeDeleteVectorItems<Surface *>(surfaces);
-	delete this->cubeMap;
-	delete this->camera;
-	delete this->light;
 }
 
 RayPayload Scene::resolveRay(Ray& collidedRay) const
@@ -120,7 +122,7 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 			diffuse_color = diffuseTexture->get_texel(texture_uv.x, texture_uv.y);
 		}
 
-		const OmniLight* light = this->light;
+		const OmniLight* light = this->light.get();
 
 		return RayPayload{normal, position, ambient_color, diffuse_color, specular_color, light, material, camera->view_from()};
 	}
@@ -135,157 +137,45 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 }
 
 
-Vector3 Scene::trace(Ray& ray, uint nest, Material const* materialBefore)
-{
-	rtcIntersect(this->scene, ray);
-	if (ray.isCollided())
-	{
-		//srazeno
-		Surface* surface = ray.collidedSurface(this->surfaces);
-		Triangle triangle = surface->get_triangle(ray.primID);
-		Material* material = surface->get_material();
-		Vector3 normal = ray.collidedNormal(this->surfaces);
-		Vector3 pos = ray.collidedPosition();
-		Vector2 tuv = triangle.texture_coord(ray.u, ray.v);
-		Vector3 lightVector = this->light->position - pos;
-		Vector3 cameraVector = -Vector3(ray.dir);
-		Vector3 halfVector = cameraVector + lightVector;
-
-		//shneluv zákon - smìry
-		//fresneul zakon R - urèuje reflexivitu
-		//pro pruhledne materialy bude zvlast vypocet - //green_plastic_transparent
-		// cos fit = -n dot odrazeny ve svetle
-		// cos fio = V dot N
-		// pro obracene normaly treba dat if na záporný cosinus a pøípadì obrátit normálu
-
-		//vektor smerujici ke kamere
-		//Vector3 cameraVector = this->camera->view_from() - pos;
+//v odmocnine je totalni odraz, tzn. R = 1
+//svetlo je to odkud prijimame paprsek tzn. v tomhle kode je to refract vector
 
 
-		//vektor smerujici ke svetle
+//renderovaci rovnice
+//svitivost pod uhlem omega o = Le(omega_o) + integral skrze hemisferu(Li(omega_i)*f_r(omega_o, omega_i) * (n * omega_i)(
+//soucet toku prenasoboene odrazivosti a prenasobena nìèím jako cos)
+//omega o - odrazena svitivost
+//omega i - incoming uhel
+//fr 4d funkce - bidirectional distribution funkction - funkce odrazovosti
+//pro vypocet integralu použít monte carlo a dosadit za xi = omega i
+//pro zacatek staci Li = 1, pozdeji vysledek z CubeMapy
+//fr pro lamberutv povrch bude fr = albedo / PI albedo..odraziovost materialu v <0,1>
+//omega i = smerovy vektor
+//rekurze az bude Le > 0
+//vypocet aspoò 10 prvku, klasicky vezmeme
+//vice vzorku pro jeden pixel tìsnì vedle posunutue - prusecik, generovani omega i, 
+//poslani paprsku ve smeru omega, omezeni rekurze, pak se vrátí 0, pro nas pripad Le = 1
+//a vysledek cube mapy, pokud se nic netrefi, pokud se trefi, tak poslat paprsek na dalsi rekurzi
 
+//poslat paprsek od kamery  
+// paprsek -> pokud nic netrefi, vratit Le = 1 nebo z cube mapy hodnotu
+//			  pokud se trefi, vygenerovat novy paprsek ve smeru omega
 
-		Vector3 rayDirection = ray.direction();
-		Vector3 reflectedRayDirection = rayDirection - 2 * normal.cosBetween(rayDirection) * normal;
+//global total compodium - vzorec 34
+//r1,r2 = random cisla <0,1>, generoovani v kouli a podle normaly prijmout ci odebrat
+//pro zaporny dot bodu s normalou odmitnout a pozadat o novy paprsek nebo negace bodu
+//uniformni qasi nahodna cisla davaji lepsi
+// nebo vygenerujeme pozici v lokalnich souradnicich v hemisfere
 
-		Vector3 gainedByReflection = Vector3(0.f);
+//funkce co vraci omegai, papne normalu 
+//radiance  - 
 
-		Texture* diff_text = material->get_texture(Material::kDiffuseMapSlot);
-		Vector3 ambient_color = material->ambient * light->ambient;
-		Vector3 diffuse_color = material->diffuse * light->diffuse;
-		Vector3 specular_color = material->specular * light->specular;
-		if (diff_text != nullptr)
-		{
-			Color4 diff_texel = diff_text->get_texel(tuv.x, tuv.y);
-			diffuse_color = Vector3(diff_texel.r, diff_texel.g, diff_texel.b);
-		}
-
-		if (nest > 0)
-		{
-			Ray reflectedRay = Ray(pos, reflectedRayDirection, 0.01);
-			gainedByReflection = trace(reflectedRay, nest - 1);
-		}
-		if (material->get_name() == "green_plastic_transparent" && nest > 0)
-		{
-			float n1 = materialBefore != nullptr && materialBefore->get_name() == "green_plastic_transparent" ? 1.46f : 1.f;
-			float n2 = 1.46f; //jinak index lomu materialu
-
-			//Vector3 refract = (Vector3(0.707107, -0.707107, 0)).refract(0.9, 1, Vector3(0, 1, 0));
-			Vector3 refract = (rayDirection).refract(n1, n2, normal);
-			//odrážíme ray nebo paprsek svetla?
-
-			Ray transmitedRay(pos, refract, 0.01f);
-			Vector3 transmitedColor = this->trace(transmitedRay, nest - 1, material);
-			float theta_i = (rayDirection).cosBetween(normal);
-			if (theta_i < 0)
-			{
-				//printf("Theta i lt 0, Nest: %d, geomId: %d, primId: %d\n", nest, ray.geomID, ray.primID);
-				theta_i = (rayDirection).cosBetween(-normal);
-			}
-			float theta_t = 1;
-			refract.cosBetween(-normal);
-			if (theta_t < 0)
-			{
-				theta_t = (refract).cosBetween(normal);
-			}
-
-			//v odmocnine je totalni odraz, tzn. R = 1
-			//svetlo je to odkud prijimame paprsek tzn. v tomhle kode je to refract vector
-
-
-			//renderovaci rovnice
-			//svitivost pod uhlem omega o = Le(omega_o) + integral skrze hemisferu(Li(omega_i)*f_r(omega_o, omega_i) * (n * omega_i)(
-			//soucet toku prenasoboene odrazivosti a prenasobena nìèím jako cos)
-			//omega o - odrazena svitivost
-			//omega i - incoming uhel
-			//fr 4d funkce - bidirectional distribution funkction - funkce odrazovosti
-			//pro vypocet integralu použít monte carlo a dosadit za xi = omega i
-			//pro zacatek staci Li = 1, pozdeji vysledek z CubeMapy
-			//fr pro lamberutv povrch bude fr = albedo / PI albedo..odraziovost materialu v <0,1>
-			//omega i = smerovy vektor
-			//rekurze az bude Le > 0
-			//vypocet aspoò 10 prvku, klasicky vezmeme
-			//vice vzorku pro jeden pixel tìsnì vedle posunutue - prusecik, generovani omega i, 
-			//poslani paprsku ve smeru omega, omezeni rekurze, pak se vrátí 0, pro nas pripad Le = 1
-			//a vysledek cube mapy, pokud se nic netrefi, pokud se trefi, tak poslat paprsek na dalsi rekurzi
-
-			//poslat paprsek od kamery  
-			// paprsek -> pokud nic netrefi, vratit Le = 1 nebo z cube mapy hodnotu
-			//			  pokud se trefi, vygenerovat novy paprsek ve smeru omega
-
-			//global total compodium - vzorec 34
-			//r1,r2 = random cisla <0,1>, generoovani v kouli a podle normaly prijmout ci odebrat
-			//pro zaporny dot bodu s normalou odmitnout a pozadat o novy paprsek nebo negace bodu
-			//uniformni qasi nahodna cisla davaji lepsi
-			// nebo vygenerujeme pozici v lokalnich souradnicich v hemisfere
-
-			//funkce co vraci omegai, papne normalu 
-			//radiance  - 
-
-			//metoda monte carlo - zpusob pocitani integralu
-			//vypocitame hodnoty ve funkci, kterou aproximujeme na obdelnik a pote staci udìlat obsah obdelniku
-			//reseni integralu od a do b f(x)~=  (b-a) * prumer f (1/N) * (suma f(i) podle N) - 
-			// 1/N * suma skrze N (fi(xi) / pdf(xi) 
-			//diky 1 / pdf(xi) - castejsi vzorky budou mit mensi hodnotu, mene castejsi vyssi
-			//- pdf je pravdepodobnost vyskytu xi, pro uniformni pripad (1 / (b - a))
-
-			float rs = std::pow((n1 * theta_i - n2 * theta_t) / (n1 * theta_i + n2 * theta_t), 2);
-			float rp = std::pow((n1 * theta_t - n2 * theta_i) / (n1 * theta_t + n2 * theta_i), 2);
-			float reflectivity = 0.5f * (rs + rp);
-			//float r0 = std::pow((n1-n2) / (n1 + n2),2);
-			//float reflectivity = r0 + (1 - r0)* std::pow(1 - theta_i,5);
-			float transmitivity = 1 - reflectivity;
-			return ambient_color + transmitedColor * transmitivity * diffuse_color +
-				specular_color * gainedByReflection * reflectivity;
-		}
-		Ray shadowRay = Ray(pos, lightVector, 0.01f, lightVector.L2Norm());
-		rtcOccluded(this->scene, shadowRay);
-		float inShadow = shadowRay.isCollided() ? 0 : 1;
-		float cosLN = std::max(lightVector.cosBetween(normal), 0.f);
-		float cosHN = std::pow(std::max(halfVector.cosBetween(normal), 0.f), 2);
-
-		Vector3 ambient = ambient_color * this->light->ambient;
-		Vector3 diffuse = diffuse_color * cosLN * this->light->diffuse;
-		Vector3 specular = specular_color * cosHN * this->light->specular;
-
-		float reflectivity = material->reflectivity;
-
-		Vector3 outputColor = ambient + (diffuse * inShadow * (1 - reflectivity)) +
-			reflectivity * specular * gainedByReflection;
-
-		//1 - reflexivity a zajisti rozmistìní složek, pøi velké reflexivitì bude dominantní specukulární A + D + R
-		//tak bude velké R a malé D a pøi malé reflectiviì bude velké D a malé R
-		return outputColor;
-	}
-	else
-	{
-		Vector3 direction = ray.direction();
-		Color4 texel = this->cubeMap->get_texel(direction);
-		return Vector3(texel.b, texel.g, texel.r);
-	}
-	//barva pozadi
-}
-
+//metoda monte carlo - zpusob pocitani integralu
+//vypocitame hodnoty ve funkci, kterou aproximujeme na obdelnik a pote staci udìlat obsah obdelniku
+//reseni integralu od a do b f(x)~=  (b-a) * prumer f (1/N) * (suma f(i) podle N) - 
+// 1/N * suma skrze N (fi(xi) / pdf(xi) 
+//diky 1 / pdf(xi) - castejsi vzorky budou mit mensi hodnotu, mene castejsi vyssi
+//- pdf je pravdepodobnost vyskytu xi, pro uniformni pripad (1 / (b - a))
 Vector3 Scene::radiosity(Ray& ray, uint nest)
 {
 	if (nest == 0)
@@ -354,9 +244,7 @@ void Scene::draw()
 
 	int nest = 5;
 
-	auto binded = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
 	//not an error
-	std::unique_ptr<Tracer> tracer(new RayTracer(binded, scene));
 
 #pragma omp parallel for
 	for (int row = 0; row < lambertImg.rows; row++)
