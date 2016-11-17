@@ -97,7 +97,7 @@
       <Filter>Source Files\tracing</Filter>
     </ClCompile>
     <ClCompile Include="PathTracer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\tracing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -171,7 +171,7 @@
       <Filter>Header Files\tracing</Filter>
     </ClInclude>
     <ClInclude Include="PathTracer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\tracing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

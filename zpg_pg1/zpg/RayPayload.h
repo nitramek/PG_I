@@ -2,7 +2,9 @@
 #include "stdafx.h"
 struct RayPayload
 {
-	//normalizovana
+	/**
+	 * Vzdy bude normalizovana
+	 */
 	Vector3 normal;
 	Vector3 position;
 	
