@@ -8,7 +8,7 @@ PathTracer::PathTracer(RayResolver resolver, const RTCScene& scene): Tracer(reso
 Color4 PathTracer::trace(Ray& ray, uint nest)
 {
 	Color4 color_sum = Color4();
-	int hits = 10;
+	int hits = 50;
 	float hit_scale = 1.0f / hits;
 	for (int i = 0; i < hits; ++i)
 	{
@@ -32,29 +32,33 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 	{
 		Vector3 rd = ray.direction().normalize();
 		Vector3 omegaOut = (-rd);
-		float cosOoN = omegaOut.dot(load.normal);
-
+		if(omegaOut.normalize().dot(load.normal) < 0)
+		{
+			load.normal = -load.normal;
+		}
 		Vector3 omega_i = random_sphere_direction().normalize();
-		if (omega_i.dot(load.normal) < 0) //opacna normal
+		float dot = omega_i.dot(load.normal);
+		if (dot < 0) //opacna normal
 		{
 			omega_i = -omega_i;
 		}
+		dot = omega_i.dot(load.normal);
+		
 		//vysledek integralu
 		Ray incomingRay = Ray(load.position, omega_i, 0.01f); //incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
-		Vector3 lightVector = load.light_vector();
-		const Color4 directColor = isInShadow(load.position, lightVector) * load.diffuse_color * lightVector.normalize().dot(load.normal);
+		//Vector3 lightVector = load.light_vector();
+		//const Color4 directColor = isInShadow(load.position, lightVector) * load.diffuse_color * lightVector.normalize().dot(load.normal);
 
-		Color4 indirectColor =
-			cosOoN * _trace(incomingRay, nest - 1) * load.material->get_reflexivity();
-
-		Color4 Li = (directColor + indirectColor);
-		Color4 Le = load.ambient_color;
-		return Le + Li * fr(omegaOut, omega_i) * (1.0f / pdf());
+		Color4 indirectColor = _trace(incomingRay, nest - 1);
+		//* load.diffuse_color
+		Color4 Li = (indirectColor); //directColor
+		//Color4 Le = load.ambient_color;
+		return (Li * fr(omegaOut, omega_i)) * dot *  (1.0f / pdf());
 	}
 	else
 	{
-		//Li
-		return load.background_color;
+		//Li//load.background_color
+		return Color4(1.0, 1.0);
 	}
 }
 
@@ -86,7 +90,7 @@ float PathTracer::pdf() const
 
 float PathTracer::fr(const Vector3& omega_out, const Vector3& omega_in) const
 {
-	return 0.3 / M_PI;
+	return 0.6f / M_PI;
 }
 
 //v odmocnine je totalni odraz, tzn. R = 1
