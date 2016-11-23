@@ -61,8 +61,9 @@ void Scene::initEmbree(RTCDevice& device)
 	rtcCommit(scene);
 }
 
-Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing)
+Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest)
 {
+	this->nest = nest;
 	this->width = width;
 	this->height = height;
 	if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
@@ -81,18 +82,24 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing)
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));
 
 	Vector3 viewFrom = Vector3(-140.0f, -175.0f, 110.0f);
-	/*viewFrom.x = -50;
-	viewFrom.y -= 30;
-	viewFrom.z -= 30;*/
+	/*viewFrom.x = 0;
+	viewFrom.y = -300;*/
+	/*viewFrom.z = 150;*/
+
+	//zaporne y - pred lodi
+	//kladne z - nad lodi
+	//zaporne x - vlevo od lodi
 
 	this->camera = std::make_unique<Camera>(width, height, viewFrom, Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
 
-
 	//this->camera->view_from(),
-	this->light = std::make_unique<OmniLight>(this->camera->view_from(),
+	/*viewFrom.z = 0.f;
+	viewFrom.y = 0;
+	viewFrom.x = -200.f;*/
+	this->light = std::make_unique<OmniLight>(viewFrom,
 	                            Vector3(0.1f), Vector3(1.f), Vector3(1.f));
 	//this->light->position.x = this->light->position.x / 2;
-	//this->light->position.y = 0.f;
+	
 }
 
 Scene::~Scene()
@@ -142,7 +149,6 @@ void Scene::draw()
 
 	auto start = std::chrono::system_clock::now();
 
-	int nest = 5;
 
 	//not an error
 
