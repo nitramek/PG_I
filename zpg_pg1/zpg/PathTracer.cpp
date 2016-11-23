@@ -39,7 +39,7 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 			omega_i = -omega_i;
 		}
 		dot = omega_i.dot(load.normal);
-		
+
 		//vysledek integralu
 		Ray incomingRay = Ray(load.position, omega_i, 0.01f); //incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
 		//Vector3 lightVector = load.light_vector();
@@ -49,7 +49,7 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		//* load.diffuse_color
 		Color4 Li = (indirectColor); //directColor
 		//Color4 Le = load.ambient_color;
-		return (Li * fr(omegaOut, omega_i)) * dot *  (1.0f / pdf());
+		return (Li * fr(load.material, omegaOut, omega_i)) * dot * (1.0f / pdf());
 	}
 	else
 	{
@@ -84,9 +84,9 @@ float PathTracer::pdf() const
 	return 1.0f / PI_2;
 }
 
-float PathTracer::fr(const Vector3& omega_out, const Vector3& omega_in) const
+Color4 PathTracer::fr(const Material* material, const Vector3& omega_out, const Vector3& omega_in) const
 {
-	return 0.6f / M_PI;
+	return material->diffuse / M_PI;
 }
 
 //v odmocnine je totalni odraz, tzn. R = 1
