@@ -38,6 +38,7 @@ Vector3 Vector3::reflect(const Vector3 & normal) const{
 
 	Vector3 thisV = *this;
 	thisV.normalize();
+	thisV = -thisV;
 	return 2 * (thisV.dot(normal)) * normal - thisV;
 }
 
