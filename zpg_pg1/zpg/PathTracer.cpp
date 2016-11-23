@@ -7,16 +7,8 @@ PathTracer::PathTracer(RayResolver resolver, const RTCScene& scene): Tracer(reso
 
 Color4 PathTracer::trace(Ray& ray, uint nest)
 {
-	Color4 color_sum = Color4();
-	int hits = 50;
-	float hit_scale = 1.0f / hits;
-	for (int i = 0; i < hits; ++i)
-	{
-		Ray ray_copy = ray;
-		//M_PI je zde pdf
-		color_sum += _trace(ray_copy, nest);
-	}
-	return color_sum * hit_scale;
+	
+	return _trace(ray, nest);
 }
 
 

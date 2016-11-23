@@ -14,12 +14,13 @@ class Scene
 	std::unique_ptr<OmniLight> light;
 	std::unique_ptr<Tracer> tracer;
 	int nest;
+	int super_samples;
 	RayPayload resolveRay(Ray& collidedRay) const;
 
 
 public:
 	void initEmbree(RTCDevice& device);
-	Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest);
+	Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples = 1);
 	~Scene();
 
 	void draw();

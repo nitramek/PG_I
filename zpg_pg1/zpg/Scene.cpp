@@ -61,17 +61,18 @@ void Scene::initEmbree(RTCDevice& device)
 	rtcCommit(scene);
 }
 
-Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest)
+Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples)
 {
 	this->nest = nest;
 	this->width = width;
 	this->height = height;
+	this->super_samples = super_samples;
 	//
 	if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
 	{
 		throw std::exception("Could not load object");
 	}
-	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/og/");
+	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/forest/");
 	this->initEmbree(device);
 	auto resolve_ray_func = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
 	if(tracing == "RT")
@@ -159,15 +160,40 @@ void Scene::draw()
 
 	//not an error
 	//shared()
-	#pragma omp parallel for schedule(dynamic, 5) 
+	Scene* obj = this;
+	bool superSample = this->super_samples > 1;
+	int halfSamples = this->super_samples / 2;
+	float sampleWidth = 0.5 / this->super_samples;
+	#pragma omp parallel for schedule(dynamic, 5)  shared(obj,superSample, halfSamples)
 	for (int row = 0; row < lambertImg.rows; row++)
 	{
 		for (int col = 0; col < lambertImg.cols; col++)
-		{
-			Ray ray = camera->GenerateRay(col, row);
-			lambertImg.at<cv::Vec4f>(row, col) = tracer->trace(ray, nest).toCV();
-			//lambertImg.at<cv::Vec3f>(row, col) = trace(ray, 5, nullptr).toCV();
+		{			
+			cv::Vec4f result;
+			if(superSample)
+			{
+				result = 0;
+				for (int offset_y = -halfSamples; offset_y <= halfSamples; ++offset_y)
+				{
+					for (int offset_x = -halfSamples; offset_x <= halfSamples; ++offset_x)
+					{
+						float x = col + offset_x * sampleWidth;
+						float y = row + offset_y * sampleWidth;
+						Ray ray = camera->GenerateRay(x, y);
+						result += tracer->trace(ray, nest).toCV();
+					}	
+				}
+				result /= static_cast<float>(this->super_samples * this->super_samples);
+			}else
+			{
+				Ray ray = camera->GenerateRay(col, row);
+				result = tracer->trace(ray, nest).toCV();
+			}
+
+			
+			lambertImg.at<cv::Vec4f>(row, col) = result;
 		}
+
 	}
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> diff = end - start;
