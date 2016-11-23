@@ -25,14 +25,17 @@ Color4 RayTracer::transmited_color(RayPayload& load, uint nest, Vector3 rd, Colo
 	{
 		n2 = 1;
 	}
-	std::tuple<Vector3, float, float> transmition = Tracer::schnell_and_fresnel(n1, n2, load.normal, -rd);
+	std::tuple<Vector3, float, float> transmition = Tracer::reverse_schnell_and_fresnel(n1, n2, load.normal, -rd);
 
 	Ray transmitedRay(load.position, std::get<0>(transmition), 0.01f);
-	Color4 transmitedColor = this->trace(transmitedRay, nest - 1, load.material);
-
-
 	float reflectivity = std::get<1>(transmition);
 	float transmitivity = std::get<2>(transmition);
+	Color4 transmitedColor = Color4();
+	if (transmitivity > 0) {
+		transmitedColor = this->trace(transmitedRay, nest - 1, load.material);
+	}
+
+	
 	return load.ambient_color +
 		transmitivity * transmitedColor * load.material->diffuse +
 		reflectivity * reflected_trace * load.material->get_reflexivity();

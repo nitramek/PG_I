@@ -33,7 +33,7 @@ public:
 	/**
 	 * Return: <Vektor ktery prorazil, reflectivity, transmitivity>
 	 */
-	static std::tuple<Vector3, float, float> schnell_and_fresnel(float n1, float n2, const Vector3& normal, const Vector3& transmited)
+	static std::tuple<Vector3, float, float> reverse_schnell_and_fresnel(float n1, float n2, const Vector3& normal, const Vector3& transmited)
 	{
 		Vector3 normal_copy = normal;
 		float cos_theta2 = (normal_copy).dot(transmited);
@@ -47,7 +47,8 @@ public:
 		if (cos_thetai_sqrt < 0)
 		{
 			//wtf to do in total reflection
-			cos_thetai_sqrt = 0.6;
+			cos_thetai_sqrt = 1.0;
+			return std::make_tuple(Vector3(), 1, 0);
 		}
 		float cos_theta1 = sqrt(cos_thetai_sqrt);
 		Vector3 rr = -(n1 / n2) * (-transmited) - ((n1 / n2) * cos_theta2 + cos_theta1) * normal_copy;
