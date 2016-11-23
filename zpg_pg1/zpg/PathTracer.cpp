@@ -32,10 +32,6 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 	{
 		Vector3 rd = ray.direction().normalize();
 		Vector3 omegaOut = (-rd);
-		if(omegaOut.normalize().dot(load.normal) < 0)
-		{
-			load.normal = -load.normal;
-		}
 		Vector3 omega_i = random_sphere_direction().normalize();
 		float dot = omega_i.dot(load.normal);
 		if (dot < 0) //opacna normal

@@ -119,6 +119,10 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 		Triangle& triangle = surface->get_triangle(collidedRay.primID);
 		Vector3 position = collidedRay.eval(collidedRay.tfar);
 		Vector3 normal = triangle.normal(collidedRay.u, collidedRay.v).normalize();
+		if(collidedRay.direction().dot(normal) > 0)
+		{
+			normal = -normal;
+		}
 		Vector2 texture_uv = triangle.texture_coord(collidedRay.u, collidedRay.v);
 		Color4 ambient_color = material->ambient;
 		Color4 diffuse_color = material->diffuse;

@@ -43,7 +43,7 @@ Color4 RayTracer::transmited_color(RayPayload& load, uint nest, Vector3 rd, Colo
 
 Color4 RayTracer::reflectedColor(RayPayload load, uint nest, Vector3 rd, Color4& reflected_trace) const
 {
-	Vector3 reflectedRayDirection = (rd).reflect(load.normal);
+	Vector3 reflectedRayDirection = (-rd).reflect(load.normal);
 	Ray reflectedRay = Ray(load.position, reflectedRayDirection, 0.01f);
 	return this->trace(reflectedRay, nest - 1, load.material);
 }

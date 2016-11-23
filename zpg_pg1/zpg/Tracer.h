@@ -37,12 +37,12 @@ public:
 	{
 		Vector3 normal_copy = normal;
 		float cos_theta2 = (normal_copy).dot(transmited);
-		if (cos_theta2 < 0)
+		/*if (cos_theta2 < 0)
 		{
 			normal_copy = -normal_copy;
 			cos_theta2 = (normal_copy).dot(transmited);
 		}
-
+*/
 		float cos_thetai_sqrt = 1 - SQR(n1 / n2) * (1 - SQR(cos_theta2));
 		if (cos_thetai_sqrt < 0)
 		{

@@ -34,10 +34,11 @@ Vector3& Vector3::normalize()
 	return *this;
 }
 
-Vector3 Vector3::reflect(const Vector3 & reflectBy) const{
+Vector3 Vector3::reflect(const Vector3 & normal) const{
 
 	Vector3 thisV = *this;
-	return 2 * (thisV * reflectBy) - thisV;
+	thisV.normalize();
+	return 2 * (thisV.dot(normal)) * normal - thisV;
 }
 
 Vector3 Vector3::CrossProduct( const Vector3 & v ) const
