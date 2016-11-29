@@ -42,3 +42,17 @@ void operator/=( Color4 & c, const float a )
 	c.b /= a;
 	c.a /= a;
 }
+
+Color4 operator/(const Color4 & c, const float a)
+{
+	return operator*(c, 1.0f / a);
+}
+Color4 operator/(const float a, const Color4 & c){
+	return operator*(c, 1.0f / a);
+}
+Color4 operator/(const Vector3 & v, const Color4 & c){
+	return operator*(v, 1.0f / c);
+}
+Color4 operator/(const Color4 & u, const Color4 & v){
+	return operator*(u, 1.0f / v);
+}

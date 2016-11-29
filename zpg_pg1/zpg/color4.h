@@ -72,6 +72,10 @@ public:
 	//friend void operator-=( Color4 & u, const Color4 & v );
 	//friend void operator*=( Color4 & v, const float a );
 	friend void operator/=( Color4 & c, const float a );
+	friend Color4 operator/(const Color4 & c, const float a);
+	friend Color4 operator/(const float a, const Color4 & c);
+	friend Color4 operator/(const Vector3 & v, const Color4 & c);
+	friend Color4 operator/(const Color4 & u, const Color4 & v);
 };
 
 #endif
