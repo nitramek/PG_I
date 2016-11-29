@@ -41,7 +41,7 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		//* load.diffuse_color
 		Color4 Li = (indirectColor); //directColor
 		//Color4 Le = load.ambient_color;
-		return (Li * fr(load.material, omegaOut, omega_i)) * dot * (1.0f / pdf());
+		return (Li * fr(load.diffuse_color, omegaOut, omega_i)) * dot * (1.0f / pdf());
 	}
 	else
 	{
@@ -76,9 +76,9 @@ float PathTracer::pdf() const
 	return 1.0f / PI_2;
 }
 
-Color4 PathTracer::fr(const Material* material, const Vector3& omega_out, const Vector3& omega_in) const
+Color4 PathTracer::fr(Color4 diffuseColor, const Vector3& omega_out, const Vector3& omega_in) const
 {
-	return material->diffuse / M_PI;
+	return diffuseColor / M_PI;
 }
 
 //v odmocnine je totalni odraz, tzn. R = 1

@@ -13,6 +13,7 @@
 struct Ray : RTCRay
 {
 	float transparency;
+	float beforeIor;
 
 	Ray( const Vector3 & origin, Vector3 direction, const float t_near = 0.0f, const float t_far = FLT_MAX )
 	{

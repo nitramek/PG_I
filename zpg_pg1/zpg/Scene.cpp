@@ -63,19 +63,21 @@ void Scene::initEmbree(RTCDevice& device)
 
 Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples)
 {
+#define SPHERE
 	this->nest = nest;
 	this->width = width;
 	this->height = height;
 	this->super_samples = super_samples;
 	//
 	if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
+	//if (LoadOBJ("../../data/geosphere.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
 	{
 		throw std::exception("Could not load object");
 	}
-	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/forest/");
+	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/Forest/");
 	this->initEmbree(device);
 	auto resolve_ray_func = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
-	if(tracing == "RT")
+	if (tracing == "RT")
 		this->tracer = std::make_unique<RayTracer>(resolve_ray_func, scene);
 	else
 		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene);
@@ -84,7 +86,7 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));
 
 	Vector3 viewFrom = Vector3(-140.0f, -175.0f, 110.0f);
-	//viewFrom = Vector3(3.0f, 0.0f, 0.0f);
+	//Vector3 viewFrom = Vector3(3.0f, 0.0f, 0.0f);
 	/*viewFrom.x = 0;
 	viewFrom.y = -300;*/
 	/*viewFrom.z = 150;*/
@@ -101,9 +103,8 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	viewFrom.y = 0;
 	viewFrom.x = -200.f;*/
 	this->light = std::make_unique<OmniLight>(viewFrom,
-	                            Vector3(0.1f), Vector3(1.f), Vector3(1.f));
+	                                          Vector3(0.1f), Vector3(1.f), Vector3(1.f));
 	//this->light->position.x = this->light->position.x / 2;
-	
 }
 
 Scene::~Scene()
@@ -123,7 +124,7 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 		Triangle& triangle = surface->get_triangle(collidedRay.primID);
 		Vector3 position = collidedRay.eval(collidedRay.tfar);
 		Vector3 normal = triangle.normal(collidedRay.u, collidedRay.v).normalize();
-		if(collidedRay.direction().dot(normal) > 0)
+		if (collidedRay.direction().dot(normal) > 0)
 		{
 			normal = -normal;
 		}
@@ -153,7 +154,7 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 
 void Scene::draw()
 {
-	cv::Mat lambertImg(height, width, CV_32FC4);
+	cv::Mat lambertImg(height, width, CV_32FC3);
 
 	auto start = std::chrono::system_clock::now();
 
@@ -164,13 +165,13 @@ void Scene::draw()
 	bool superSample = this->super_samples > 1;
 	int halfSamples = this->super_samples / 2;
 	float sampleWidth = 0.5 / this->super_samples;
-	#pragma omp parallel for schedule(dynamic, 5)  shared(obj,superSample, halfSamples)
+#pragma omp parallel for schedule(dynamic, 5)  shared(obj,superSample, halfSamples)
 	for (int row = 0; row < lambertImg.rows; row++)
 	{
 		for (int col = 0; col < lambertImg.cols; col++)
-		{			
-			cv::Vec4f result;
-			if(superSample)
+		{
+			cv::Vec3f result;
+			if (superSample)
 			{
 				result = 0;
 				for (int offset_y = -halfSamples; offset_y <= halfSamples; ++offset_y)
@@ -180,20 +181,20 @@ void Scene::draw()
 						float x = col + offset_x * sampleWidth;
 						float y = row + offset_y * sampleWidth;
 						Ray ray = camera->GenerateRay(x, y);
-						result += tracer->trace(ray, nest).toCV();
-					}	
+						result += tracer->trace(ray, nest).toCV_V3();
+					}
 				}
 				result /= static_cast<float>(this->super_samples * this->super_samples);
-			}else
+			}
+			else
 			{
 				Ray ray = camera->GenerateRay(col, row);
-				result = tracer->trace(ray, nest).toCV();
+				result = tracer->trace(ray, nest).toCV_V3();
 			}
 
-			
-			lambertImg.at<cv::Vec4f>(row, col) = result;
-		}
 
+			lambertImg.at<cv::Vec3f>(row, col) = result;
+		}
 	}
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> diff = end - start;

@@ -79,3 +79,16 @@ Vector3 Material::get_reflexivity() const
 {
 	return this->reflectivity * this->specular;
 }
+
+Color4 Material::diffuseColor(const float u, const float v) const
+{
+	Texture* texture = this->get_texture(Material::kDiffuseMapSlot);
+	if (texture == nullptr)
+	{
+		return this->diffuse;
+	}
+	else
+	{
+		return texture->get_texel(u, v);
+	}
+}

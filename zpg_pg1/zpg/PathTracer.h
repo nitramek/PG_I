@@ -10,7 +10,7 @@ private:
 
 	inline float random();
 	inline float pdf() const;
-	Color4 fr(const Material* material, const Vector3& omega_out, const Vector3& omega_in) const;
+	Color4 fr(Color4 diffuseColor, const Vector3& omega_out, const Vector3& omega_in) const;
 	Vector3 random_sphere_direction();
 	
 	Color4 _trace(Ray& ray, uint nest);

@@ -90,6 +90,8 @@ public:
 	*/
 	Vector3 get_reflexivity() const;
 
+	Color4 diffuseColor(const float u, const float v) const;
+
 public:
 	Vector3 ambient; /*!< RGB barva prostøedí \f$\left<0, 1\right>^3\f$. */
 	Vector3 diffuse; /*!< RGB barva rozptylu \f$\left<0, 1\right>^3\f$. */
