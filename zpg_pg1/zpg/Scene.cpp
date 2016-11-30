@@ -180,16 +180,16 @@ void Scene::draw()
 					{
 						float x = col + offset_x * sampleWidth;
 						float y = row + offset_y * sampleWidth;
-						Ray ray = camera->GenerateRay(x, y);
-						result += tracer->trace(ray, nest).toCV_V3();
+						Ray ray = obj->camera->GenerateRay(x, y);
+						result += obj->tracer->trace(ray, nest).toCV_V3();
 					}
 				}
-				result /= static_cast<float>(this->super_samples * this->super_samples);
+				result /= static_cast<float>(obj->super_samples * obj->super_samples);
 			}
 			else
 			{
-				Ray ray = camera->GenerateRay(col, row);
-				result = tracer->trace(ray, nest).toCV_V3();
+				Ray ray = obj->camera->GenerateRay(col, row);
+				result = obj->tracer->trace(ray, obj->nest).toCV_V3();
 			}
 
 
