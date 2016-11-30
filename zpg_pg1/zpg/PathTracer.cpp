@@ -3,11 +3,11 @@
 
 PathTracer::PathTracer(RayResolver resolver, const RTCScene& scene): Tracer(resolver, scene)
 {
+	this->sampler = std::make_unique<UniformSampler>();
 }
 
 Color4 PathTracer::trace(Ray& ray, uint nest)
 {
-	
 	return _trace(ray, nest);
 }
 
@@ -24,24 +24,23 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 	{
 		Vector3 rd = ray.direction().normalize();
 		Vector3 omegaOut = (-rd);
-		Vector3 omega_i = random_sphere_direction().normalize();
+		Vector3 omega_i = sampler->next_direction(load.normal, omegaOut);// random_sphere_direction().normalize();
 		float dot = omega_i.dot(load.normal);
-		if (dot < 0) //opacna normal
-		{
-			omega_i = -omega_i;
-		}
-		dot = omega_i.dot(load.normal);
+
 
 		//vysledek integralu
-		Ray incomingRay = Ray(load.position, omega_i, 0.01f); //incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
+		Ray incomingRay = Ray(load.position, omega_i, 0.01f);
+		//incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
 		//Vector3 lightVector = load.light_vector();
-		//const Color4 directColor = isInShadow(load.position, lightVector) * load.diffuse_color * lightVector.normalize().dot(load.normal);
-
+		//const Color4 directColor = 
+		//isInShadow(load.position, lightVector) * load.diffuse_color * lightVector.normalize().dot(load.normal);
+		// na important tracing normal.dot(uhel) > random(0,1)
+		//na reflektivini povrch, udelat paprsek s pdf 1, který bude pøesnì opaèný
 		Color4 indirectColor = _trace(incomingRay, nest - 1);
 		//* load.diffuse_color
 		Color4 Li = (indirectColor); //directColor
 		//Color4 Le = load.ambient_color;
-		return (Li * fr(load.diffuse_color, omegaOut, omega_i)) * dot * (1.0f / pdf());
+		return (Li * sampler->fr(load.diffuse_color, load.normal, omegaOut, omega_i)) * dot * (1.0f / sampler->pdf(load.normal));
 	}
 	else
 	{
@@ -78,7 +77,7 @@ float PathTracer::pdf() const
 
 Color4 PathTracer::fr(Color4 diffuseColor, const Vector3& omega_out, const Vector3& omega_in) const
 {
-	return diffuseColor / M_PI;
+	return Color4(0.6f / M_PI);
 }
 
 //v odmocnine je totalni odraz, tzn. R = 1

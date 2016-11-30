@@ -99,6 +99,9 @@
     <ClCompile Include="PathTracer.cpp">
       <Filter>Source Files\tracing</Filter>
     </ClCompile>
+    <ClCompile Include="Sampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -172,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="PathTracer.h">
       <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Sampler.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

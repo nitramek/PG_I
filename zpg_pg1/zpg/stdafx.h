@@ -76,4 +76,5 @@ typedef std::function<RayPayload(Ray&)> RayResolver;
 #include "RayTracer.h"
 #include "PathTracer.h"
 #include "Scene.h"
+#include "Sampler.h"
 
