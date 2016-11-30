@@ -17,7 +17,11 @@ Color4 RayTracer::trace(Ray& direction, uint nest)
 Color4 RayTracer::transmited_color(RayPayload& load, uint nest, Vector3 rd, float iorBefore) const
 {
 	float n1 = iorBefore;
-	float n2 = 2.5f - iorBefore;//load.material->ior;
+	float n2 = load.material->ior;//load.material->ior;
+	if(iorBefore == 1.5f)
+	{
+		n2 = 1.0;
+	}
 
 	std::tuple<Vector3, Vector3, float, float> transmition = Tracer::reverse_schnell_and_fresnel(n1, n2, load.normal, rd);
 
@@ -40,7 +44,7 @@ Color4 RayTracer::transmited_color(RayPayload& load, uint nest, Vector3 rd, floa
 		reflected_color = this->trace(reflectedRay, nest - 1, n2);
 	}
 	return transmitivity * transmitedColor * load.diffuse_color
-		+ reflectivity * reflected_color * load.specular_color * load.material->reflectivity;
+		+ reflectivity * reflected_color * load.material->reflectivity * load.specular_color;
 }
 
 Color4 RayTracer::reflectedColor(RayPayload& load, uint nest, Vector3 rd) const
