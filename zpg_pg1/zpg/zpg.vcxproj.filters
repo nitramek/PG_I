@@ -102,6 +102,9 @@
     <ClCompile Include="UniformSampler.cpp">
       <Filter>Source Files\tracing</Filter>
     </ClCompile>
+    <ClCompile Include="ImportantSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -181,6 +184,9 @@
     </ClInclude>
     <ClInclude Include="UniformSampler.h">
       <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportantSampler.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

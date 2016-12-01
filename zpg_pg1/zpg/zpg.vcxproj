@@ -197,6 +197,7 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="CubeMap.cpp" />
+    <ClCompile Include="ImportantSampler.cpp" />
     <ClCompile Include="objloader.cpp" />
     <ClCompile Include="PathTracer.cpp" />
     <ClCompile Include="RayTracer.cpp" />
@@ -227,6 +228,7 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="CubeMap.h" />
+    <ClInclude Include="ImportantSampler.h" />
     <ClInclude Include="objloader.h" />
     <ClInclude Include="PathTracer.h" />
     <ClInclude Include="RayPayload.h" />
