@@ -63,7 +63,6 @@ void Scene::initEmbree(RTCDevice& device)
 
 Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples)
 {
-#define SPHERE
 	this->nest = nest;
 	this->width = width;
 	this->height = height;
@@ -80,7 +79,7 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	if (tracing == "RT")
 		this->tracer = std::make_unique<RayTracer>(resolve_ray_func, scene);
 	else
-		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene);
+		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene, std::make_unique<UniformSampler>());
 	//this->camera = new Camera(width, height, Vector3(-400.f, -500.f, 370.f),
 	//	Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));

@@ -99,8 +99,8 @@
     <ClCompile Include="PathTracer.cpp">
       <Filter>Source Files\tracing</Filter>
     </ClCompile>
-    <ClCompile Include="Sampler.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="UniformSampler.cpp">
+      <Filter>Source Files\tracing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -177,7 +177,10 @@
       <Filter>Header Files\tracing</Filter>
     </ClInclude>
     <ClInclude Include="Sampler.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="UniformSampler.h">
+      <Filter>Header Files\tracing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

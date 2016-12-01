@@ -1,9 +1,10 @@
 #include "stdafx.h"
 
 
-PathTracer::PathTracer(RayResolver resolver, const RTCScene& scene): Tracer(resolver, scene)
+PathTracer::PathTracer(RayResolver resolver, const RTCScene& scene, std::unique_ptr<Sampler> sampler): Tracer(resolver, scene)
 {
-	this->sampler = std::make_unique<UniformSampler>();
+
+	this->sampler = std::move(sampler);
 }
 
 Color4 PathTracer::trace(Ray& ray, uint nest)
@@ -24,23 +25,25 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 	{
 		Vector3 rd = ray.direction().normalize();
 		Vector3 omegaOut = (-rd);
-		Vector3 omega_i = sampler->next_direction(load.normal, omegaOut);// random_sphere_direction().normalize();
-		float dot = omega_i.dot(load.normal);
+		//Vector3 omega_i = sampler->next_direction(, omegaOut);// random_sphere_direction().normalize();
+		//float dot = omega_i.dot(load.normal);
 
 
+		std::tuple<Color4, Vector3> sample = sampler->sample(rd, load.normal, load.material);
 		//vysledek integralu
-		Ray incomingRay = Ray(load.position, omega_i, 0.01f);
+		Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
 		//incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
 		//Vector3 lightVector = load.light_vector();
 		//const Color4 directColor = 
 		//isInShadow(load.position, lightVector) * load.diffuse_color * lightVector.normalize().dot(load.normal);
-		// na important tracing normal.dot(uhel) > random(0,1)
+		// na important tracing normal.dot(uhel)
 		//na reflektivini povrch, udelat paprsek s pdf 1, který bude pøesnì opaèný
+		//imporant sampling je vyorec 35., a ještì musí být normal.dot(rd) > random(0,1)
 		Color4 indirectColor = _trace(incomingRay, nest - 1);
 		//* load.diffuse_color
 		Color4 Li = (indirectColor); //directColor
 		//Color4 Le = load.ambient_color;
-		return (Li * sampler->fr(load.diffuse_color, load.normal, omegaOut, omega_i)) * dot * (1.0f / sampler->pdf(load.normal));
+		return (Li * std::get<0>(sample));
 	}
 	else
 	{

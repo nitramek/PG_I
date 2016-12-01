@@ -21,7 +21,7 @@ private:
 public:
 	virtual ~PathTracer();
 
-	PathTracer(RayResolver resolver, const RTCScene& scene);
+	PathTracer(RayResolver resolver, const RTCScene& scene, std::unique_ptr<Sampler> sampler);
 	Color4 trace(Ray& ray, uint nest) override;
 	
 };
