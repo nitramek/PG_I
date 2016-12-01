@@ -33,18 +33,17 @@ Color4 RayTracer::transmited_color(RayPayload& load, uint nest, Vector3 rd, floa
 	if (transmitivity > 0.0f)
 	{
 		Ray transmitedRay(load.position, std::get<0>(transmition), 0.01f);
-		transmitedRay.beforeIor = n2;
 		transmitedColor = this->trace(transmitedRay, nest - 1, n2);
 	}
 
 	Color4 reflected_color = Color4();
 	if (reflectivity > 0.0f)
 	{
-		Ray reflectedRay(load.position, std::get<1>(transmition), 0.01f);
+		Ray reflectedRay(load.position, rd.normalize().reflect(load.normal), 0.01f);
 		reflected_color = this->trace(reflectedRay, nest - 1, n2);
 	}
 	return transmitivity * transmitedColor * load.diffuse_color
-		+ reflectivity * reflected_color * load.material->reflectivity * load.specular_color;
+		+ reflectivity * reflected_color * load.material->reflectivity;
 }
 
 Color4 RayTracer::reflectedColor(RayPayload& load, uint nest, Vector3 rd) const

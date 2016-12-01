@@ -74,7 +74,7 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	{
 		throw std::exception("Could not load object");
 	}
-	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/Forest/");
+	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/og/");
 	this->initEmbree(device);
 	auto resolve_ray_func = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
 	if (tracing == "RT")
