@@ -16,7 +16,7 @@ public:
 		return distribution(generator);
 	}
 
-	virtual std::tuple<Color4, Vector3> sample(const Vector3& incoming_direction, const Vector3& normal, const Material* const material) = 0;
+	virtual std::tuple<Color4, Vector3> sample(const Vector3& incoming_direction, const Vector3& normal, const Color4& diffuse_color) = 0;
 	
 };
 

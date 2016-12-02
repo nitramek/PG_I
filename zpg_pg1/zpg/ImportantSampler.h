@@ -7,8 +7,10 @@ public:
 
 
 	float pdf(float cosTheta);
-	std::tuple<Color4, Vector3> sample(const Vector3& incoming_direction, 
-		const Vector3& normal, const Material* const material) override;
+	Vector3 next_direction();
+	float ImportantSampler::fr(float cos_in, float cos_out);
+	std::tuple<Color4, Vector3> sample(const Vector3& incoming_direction,
+	                                   const Vector3& normal, const Color4& diffuse_color) override;
 };
 
 

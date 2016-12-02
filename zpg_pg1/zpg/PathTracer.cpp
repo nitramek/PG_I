@@ -29,7 +29,7 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		//float dot = omega_i.dot(load.normal);
 
 
-		std::tuple<Color4, Vector3> sample = sampler->sample(rd, load.normal, load.material);
+		std::tuple<Color4, Vector3> sample = sampler->sample(rd, load.normal, load.diffuse_color);
 		//vysledek integralu
 		Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
 		//incoming, ale je opacne, takze je vlastne ten co prichazi obraceny

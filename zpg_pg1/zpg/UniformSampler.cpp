@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-Color4 UniformSampler::fr(const Material * const material, const Vector3& omega_out, const Vector3& omega_in)
+Color4 UniformSampler::fr(const Vector3& omega_out, const Vector3& omega_in)
 {
 	return Color4(0.3f / M_PI);
 }
@@ -29,11 +29,11 @@ Vector3 UniformSampler::next_direction(const Vector3& normal, const Vector3& inc
 	return randomDirection;
 }
 
-std::tuple<Color4, Vector3> UniformSampler::sample(const Vector3& incoming_direction, const Vector3& normal, const Material* const material)
+std::tuple<Color4, Vector3> UniformSampler::sample(const Vector3& incoming_direction, const Vector3& normal, const Color4& diffuse_color)
 {
 	Vector3 outcomingDirection = next_direction(normal, incoming_direction);
 	outcomingDirection.normalize();
-	Color4 brdfColor = normal.dot(outcomingDirection) * fr(material, incoming_direction, outcomingDirection) * (1.0f / pdf());
+	Color4 brdfColor = normal.dot(outcomingDirection) * fr(incoming_direction, outcomingDirection) * (1.0f / pdf());
 	return std::make_tuple(brdfColor, outcomingDirection);
 
 }
