@@ -79,3 +79,4 @@ typedef std::function<RayPayload(Ray&)> RayResolver;
 #include "Sampler.h"
 #include "UniformSampler.h"
 #include "ImportantSampler.h"
+#include "ReflectionSampler.h"

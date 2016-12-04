@@ -27,7 +27,11 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		Vector3 omegaOut = (-rd);
 		//Vector3 omega_i = sampler->next_direction(, omegaOut);// random_sphere_direction().normalize();
 		//float dot = omega_i.dot(load.normal);
-
+		Sampler* sampler = this->sampler.get();
+		if(load.material->get_name() == "green_plastic_transparent")
+		{
+			sampler = &reflectionSampler;
+		}
 
 		std::tuple<Color4, Vector3> sample = sampler->sample(rd, load.normal, load.diffuse_color);
 		//vysledek integralu

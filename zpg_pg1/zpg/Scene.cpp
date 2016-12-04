@@ -76,10 +76,11 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	this->cubeMap = std::make_unique<CubeMap>("../../data/cubebox/og/");
 	this->initEmbree(device);
 	auto resolve_ray_func = std::bind(&Scene::resolveRay, this, std::placeholders::_1);
+
 	if (tracing == "RT")
 		this->tracer = std::make_unique<RayTracer>(resolve_ray_func, scene);
 	else
-		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene, std::make_unique<UniformSampler>());
+		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene, std::make_unique<ImportantSampler>());
 	//this->camera = new Camera(width, height, Vector3(-400.f, -500.f, 370.f),
 	//	Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));

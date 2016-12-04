@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Sampler.h"
+#include "ReflectionSampler.h"
 
 
 class PathTracer :
@@ -18,6 +19,7 @@ private:
 	
 	Color4 _trace(Ray& ray, uint nest);
 	std::unique_ptr<Sampler> sampler;
+	ReflectionSampler reflectionSampler;
 public:
 	virtual ~PathTracer();
 
