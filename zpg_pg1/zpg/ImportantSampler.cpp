@@ -18,7 +18,7 @@ Vector3 ImportantSampler::next_direction()
 }
 float ImportantSampler::fr(float cos_in, float cos_out)
 {
-	return (1 - abs(cos_out - cos_in)) / M_PI;
+	return (0.3 / M_PI) * (1 - abs(cos_out - cos_in));
 }
 inline Vector3 orthogonal(const Vector3 & v)
 {
@@ -49,7 +49,7 @@ std::tuple<Color4, Vector3> ImportantSampler::sample(const Vector3& incoming_dir
 	//	cos_out = normal.dot(outcoming_direction);
 	
 	float cos_in = normal.dot(-incoming_direction);
-	Color4 color_coeff  = 0.3f * fr(cos_in, cos_out) * cos_out * (1.f / pdf(cos_out));
+	Color4 color_coeff  = fr(cos_in, cos_out) * cos_out * (1.f / pdf(cos_out));
 	
 
 
