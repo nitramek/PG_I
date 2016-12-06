@@ -31,7 +31,7 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		//random() > 0.9
 		if(load.material->get_name() == "green_plastic_transparent")
 		{
-			//currentSampler = &reflectionSampler;
+			currentSampler = &reflectionSampler;
 		}
 
 		std::tuple<Color4, Vector3> sample = currentSampler->sample(rd, load.normal, load.diffuse_color);
