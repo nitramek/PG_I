@@ -61,7 +61,7 @@ void Scene::initEmbree(RTCDevice& device)
 	rtcCommit(scene);
 }
 
-Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples)
+Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples, std::unique_ptr<Sampler> sampler)
 {
 	this->nest = nest;
 	this->width = width;
@@ -80,7 +80,7 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	if (tracing == "RT")
 		this->tracer = std::make_unique<RayTracer>(resolve_ray_func, scene);
 	else
-		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene, std::make_unique<ImportantSampler>());
+		this->tracer = std::make_unique<PathTracer>(resolve_ray_func, scene, std::move(sampler));
 	//this->camera = new Camera(width, height, Vector3(-400.f, -500.f, 370.f),
 	//	Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));
@@ -152,7 +152,7 @@ RayPayload Scene::resolveRay(Ray& collidedRay) const
 	}
 }
 
-void Scene::draw()
+void Scene::drawIn(std::string window_name)
 {
 	cv::Mat lambertImg(height, width, CV_32FC3);
 
@@ -199,7 +199,7 @@ void Scene::draw()
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> diff = end - start;
 	printf("Tracing for depth %d, took %f s\n", nest, diff.count());
-	cv::namedWindow("Phong", CV_WINDOW_AUTOSIZE);
-	cv::imshow("Phong", lambertImg);
-	cv::waitKey(0);
+	cv::namedWindow(window_name, CV_WINDOW_AUTOSIZE);
+	cv::imshow(window_name, lambertImg);
+	
 }

@@ -20,9 +20,9 @@ class Scene
 
 public:
 	void initEmbree(RTCDevice& device);
-	Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples = 1);
+	Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples, std::unique_ptr<Sampler> sampler);
 	~Scene();
 
-	void draw();
+	void drawIn(std::string window_name);
 };
 
