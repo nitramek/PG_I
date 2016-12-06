@@ -27,13 +27,14 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		Vector3 omegaOut = (-rd);
 		//Vector3 omega_i = sampler->next_direction(, omegaOut);// random_sphere_direction().normalize();
 		//float dot = omega_i.dot(load.normal);
-		Sampler* sampler = this->sampler.get();
+		Sampler* currentSampler = this->sampler.get();
+		//random() > 0.9
 		if(load.material->get_name() == "green_plastic_transparent")
 		{
-			sampler = &reflectionSampler;
+			//currentSampler = &reflectionSampler;
 		}
 
-		std::tuple<Color4, Vector3> sample = sampler->sample(rd, load.normal, load.diffuse_color);
+		std::tuple<Color4, Vector3> sample = currentSampler->sample(rd, load.normal, load.diffuse_color);
 		//vysledek integralu
 		Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
 		//incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
@@ -51,7 +52,8 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 	}
 	else
 	{
-		//Li//load.background_color
+		//Li//
+		return load.background_color;
 		return Color4(1.0, 1.0);
 	}
 }
