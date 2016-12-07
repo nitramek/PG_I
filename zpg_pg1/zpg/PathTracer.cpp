@@ -27,6 +27,7 @@ Color4 PathTracer::_trace(Ray& ray, uint nest, float beforeIor)
 		//Vector3 omega_i = sampler->next_direction(, omegaOut);// random_sphere_direction().normalize();
 		//float dot = omega_i.dot(load.normal);
 		Sampler* currentSampler = this->sampler.get();
+		float reflectivityChance = 0.3f;
 		if (load.material->get_name() == "green_plastic_transparent")
 		{
 			float n1 = beforeIor;
@@ -47,31 +48,31 @@ Color4 PathTracer::_trace(Ray& ray, uint nest, float beforeIor)
 				Ray outcomeRay = Ray(load.position, outcomeDir, 0.01f);
 				Color4 indirectColor = _trace(outcomeRay, nest - 1, n2);
 				float dot = load.normal.dot(-outcomeDir);
-				return indirectColor * load.diffuse_color * dot;// *transmitivity;//; * dot * transmitivity * load.material->diffuse;
+				return (indirectColor * load.diffuse_color);//l * transmitivity;//; * dot * transmitivity * load.material->diffuse;
 			}
 			else
 			{
 				std::tuple<Color4, Vector3> sample = reflectionSampler.sample(rd, load.normal, load.specular_color);
 				Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
 				Color4 indirectColor = _trace(incomingRay, nest - 1, n2);
-											 //Color4 Le = load.ambient_color;
-				return indirectColor * std::get<0>(sample) * reflectivity; //*reflectivity;
-				
+				//Color4 Le = load.ambient_color;
+				return (indirectColor * std::get<0>(sample));// * reflectivity; //*reflectivity;
 			}
 		}
 		else
 		{
-			if (random() > 0.5)
+			if (reflectivityChance > random())
+			{
 				currentSampler = &reflectionSampler;
+			}
+
 		}
 
 		std::tuple<Color4, Vector3> sample = currentSampler->sample(rd, load.normal, load.diffuse_color);
 		Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
-		Color4 indirectColor = _trace(incomingRay, nest - 1, load.material->ior);
-		//* load.diffuse_color
-		Color4 Li = (indirectColor); //directColor
-		//Color4 Le = load.ambient_color;
-		return (Li * std::get<0>(sample) * (1.f / 2.f));
+		Color4 Li = _trace(incomingRay, nest - 1, load.material->ior);
+		Color4 brdfColor = std::get<0>(sample);
+		return (Li * brdfColor);
 		//incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
 		//Vector3 lightVector = load.light_vector();
 		//const Color4 directColor = 
