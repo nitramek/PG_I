@@ -17,7 +17,7 @@ private:
 	Color4 fr(Color4 diffuseColor, const Vector3& omega_out, const Vector3& omega_in) const;
 	Vector3 random_sphere_direction();
 	
-	Color4 _trace(Ray& ray, uint nest);
+	Color4 _trace(Ray& ray, uint nest, float beforeIor);
 	std::unique_ptr<Sampler> sampler;
 	ReflectionSampler reflectionSampler;
 public:

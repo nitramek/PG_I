@@ -3,17 +3,16 @@
 
 PathTracer::PathTracer(RayResolver resolver, const RTCScene& scene, std::unique_ptr<Sampler> sampler): Tracer(resolver, scene)
 {
-
 	this->sampler = std::move(sampler);
 }
 
 Color4 PathTracer::trace(Ray& ray, uint nest)
 {
-	return _trace(ray, nest);
+	return _trace(ray, nest, 1.0f);
 }
 
 
-Color4 PathTracer::_trace(Ray& ray, uint nest)
+Color4 PathTracer::_trace(Ray& ray, uint nest, float beforeIor)
 {
 	rtcIntersect(scene, ray);
 	RayPayload load = getRayPayload(ray);
@@ -28,15 +27,51 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		//Vector3 omega_i = sampler->next_direction(, omegaOut);// random_sphere_direction().normalize();
 		//float dot = omega_i.dot(load.normal);
 		Sampler* currentSampler = this->sampler.get();
-		//random() > 0.9
-		if(load.material->get_name() == "green_plastic_transparent")
+		if (load.material->get_name() == "green_plastic_transparent")
 		{
-			currentSampler = &reflectionSampler;
+			float n1 = beforeIor;
+			float n2 = load.material->ior;
+			if (beforeIor == 1.5f)
+			{
+				n2 = 1.0;
+			}
+
+			std::tuple<Vector3, Vector3, float, float> reverseSchnellAndFresnel =
+				Tracer::reverse_schnell_and_fresnel(n1, n2, load.normal, rd);
+			float reflectivity = std::get<2>(reverseSchnellAndFresnel);
+			float transmitivity = std::get<3>(reverseSchnellAndFresnel);
+
+			if (transmitivity > random())
+			{
+				Vector3 outcomeDir = std::get<0>(reverseSchnellAndFresnel);
+				Ray outcomeRay = Ray(load.position, outcomeDir, 0.01f);
+				Color4 indirectColor = _trace(outcomeRay, nest - 1, n2);
+				float dot = load.normal.dot(-outcomeDir);
+				return indirectColor * load.diffuse_color * dot;// *transmitivity;//; * dot * transmitivity * load.material->diffuse;
+			}
+			else
+			{
+				std::tuple<Color4, Vector3> sample = reflectionSampler.sample(rd, load.normal, load.specular_color);
+				Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
+				Color4 indirectColor = _trace(incomingRay, nest - 1, n2);
+											 //Color4 Le = load.ambient_color;
+				return indirectColor * std::get<0>(sample) * reflectivity; //*reflectivity;
+				
+			}
+		}
+		else
+		{
+			if (random() > 0.5)
+				currentSampler = &reflectionSampler;
 		}
 
 		std::tuple<Color4, Vector3> sample = currentSampler->sample(rd, load.normal, load.diffuse_color);
-		//vysledek integralu
 		Ray incomingRay = Ray(load.position, std::get<1>(sample), 0.01f);
+		Color4 indirectColor = _trace(incomingRay, nest - 1, load.material->ior);
+		//* load.diffuse_color
+		Color4 Li = (indirectColor); //directColor
+		//Color4 Le = load.ambient_color;
+		return (Li * std::get<0>(sample) * (1.f / 2.f));
 		//incoming, ale je opacne, takze je vlastne ten co prichazi obraceny
 		//Vector3 lightVector = load.light_vector();
 		//const Color4 directColor = 
@@ -44,11 +79,6 @@ Color4 PathTracer::_trace(Ray& ray, uint nest)
 		// na important tracing normal.dot(uhel)
 		//na reflektivini povrch, udelat paprsek s pdf 1, který bude pøesnì opaèný
 		//imporant sampling je vyorec 35., a ještì musí být normal.dot(rd) > random(0,1)
-		Color4 indirectColor = _trace(incomingRay, nest - 1);
-		//* load.diffuse_color
-		Color4 Li = (indirectColor); //directColor
-		//Color4 Le = load.ambient_color;
-		return (Li * std::get<0>(sample));
 	}
 	else
 	{
