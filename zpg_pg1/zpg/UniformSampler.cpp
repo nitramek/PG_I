@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
-Color4 UniformSampler::fr(const Vector3& omega_out, const Vector3& omega_in)
+Color4 UniformSampler::fr(Color4 color, const Vector3& omega_out, const Vector3& omega_in)
 {
-	return Color4(0.3f / M_PI);
+	return color / M_PI;
 }
 
 float UniformSampler::pdf()
@@ -33,7 +33,7 @@ std::tuple<Color4, Vector3> UniformSampler::sample(const Vector3& incoming_direc
 {
 	Vector3 outcomingDirection = next_direction(normal, incoming_direction);
 	outcomingDirection.normalize();
-	Color4 brdfColor = normal.dot(outcomingDirection) * fr(incoming_direction, outcomingDirection) * (1.0f / pdf());
+	Color4 brdfColor = normal.dot(outcomingDirection) * fr(diffuse_color, incoming_direction, outcomingDirection) * (1.0f / pdf());
 	return std::make_tuple(brdfColor, outcomingDirection);
 
 }
