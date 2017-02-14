@@ -14,8 +14,10 @@ struct Ray : RTCRay
 {
 	float transparency;
 	float beforeIor;
+	bool customIntersector = false;
+	Vector3 collided_normal;
 
-	Ray( const Vector3 & origin, Vector3 direction, const float t_near = 0.0f, const float t_far = FLT_MAX )
+	Ray(const Vector3& origin, Vector3 direction, const float t_near = 0.0f, const float t_far = FLT_MAX)
 	{
 		org[0] = origin.x;
 		org[1] = origin.y;
@@ -40,19 +42,21 @@ struct Ray : RTCRay
 		transparency = 3.14f;
 	}
 
-	Vector3 direction() const {
+	Vector3 direction() const
+	{
 		return Vector3(this->dir[0], this->dir[1], this->dir[2]);
 	}
 
-	Vector3 eval( const float t ) const
+	Vector3 eval(const float t) const
 	{
 		return Vector3(
 			org[0] + dir[0] * t,
 			org[1] + dir[1] * t,
-			org[2] + dir[2] * t );
+			org[2] + dir[2] * t);
 	}
 
-	Surface * collidedSurface(std::vector<Surface*> &surfaces) {
+	Surface* collidedSurface(std::vector<Surface*>& surfaces)
+	{
 		if (this->geomID == RTC_INVALID_GEOMETRY_ID)
 		{
 			std::cout << "No geometry was found/collided/intersected" << std::endl;
@@ -63,23 +67,39 @@ struct Ray : RTCRay
 			return surfaces[this->geomID];
 		}
 	}
-	Triangle * collidedTriangle(Surface * surface) {
+
+	Triangle* collidedTriangle(Surface* surface)
+	{
 		if (this->primID == RTC_INVALID_GEOMETRY_ID || surface != nullptr)
 		{
 			std::cout << "No primitive was found/collided/intersected" << std::endl;
 			return nullptr;
 		}
-		else {
+		else
+		{
 			return &surface->get_triangle(this->primID);
 		}
 	}
-	Vector3 collidedPosition() {
+
+	Vector3 collidedPosition()
+	{
 		return this->eval(this->tfar);
 	}
-	Vector3 collidedNormal(std::vector<Surface*> surfaces) {
-		return surfaces[this->geomID]->get_triangle(this->primID).normal(this->u, this->v);
+
+	Vector3 collidedNormal(std::vector<Surface*> surfaces)
+	{
+		if (customIntersector)
+		{
+			return collided_normal;
+		}
+		else
+		{
+			return surfaces[this->geomID]->get_triangle(this->primID).normal(this->u, this->v);
+		}
 	}
-	bool isCollided() {
+
+	bool isCollided()
+	{
 		return this->geomID != RTC_INVALID_GEOMETRY_ID;
 	}
 
@@ -89,6 +109,7 @@ struct Ray : RTCRay
 		rtcIntersect(scene, t);
 		return t;
 	}
+
 	Ray& occluded(RTCScene& scene)
 	{
 		Ray& t = *this;
@@ -96,7 +117,6 @@ struct Ray : RTCRay
 		return t;
 	}
 };
-
 
 
 /*! \struct Ray
@@ -112,11 +132,11 @@ struct RayOld
 {
 	Vector3 origin; /*!< Poèátek paprsku. */
 	Vector3 direction; /*!< Smìrový vektor (jednotkový). */
-	Vector3 inv_direction; /*!< Invertovaný smìrový vektor. */	
+	Vector3 inv_direction; /*!< Invertovaný smìrový vektor. */
 	float t; /*!< Reálný parametr \f$tf$. */
-	Triangle * target; /*!< Ukazatel na zasažený trojúhelníky. */
+	Triangle* target; /*!< Ukazatel na zasažený trojúhelníky. */
 	float env_ior; /*!< Index lomu prostøedí, kterým se paprsek aktuálnì pohybuje. */
-	char direction_sign[3]; /*!< Znaménko smìrového vektoru. */	
+	char direction_sign[3]; /*!< Znaménko smìrového vektoru. */
 
 	//! Specializovaný konstruktor.
 	/*!
@@ -125,10 +145,10 @@ struct RayOld
 	\param origin poèátek.
 	\param direction jednotkový smìr.
 	*/
-	RayOld( const Vector3 & origin, const Vector3 & direction, const float bounce = EPSILON, const float env_ior = IOR_AIR )
+	RayOld(const Vector3& origin, const Vector3& direction, const float bounce = EPSILON, const float env_ior = IOR_AIR)
 	{
 		this->origin = origin;
-		set_direction( direction );		
+		set_direction(direction);
 
 		this->origin += bounce * this->direction;
 
@@ -145,7 +165,7 @@ struct RayOld
 	/*!	
 	\return Souøadnice bodu na paprsku pro zadaný parametr \f$t\f$.
 	*/
-	Vector3 eval( const float t )
+	Vector3 eval(const float t)
 	{
 		return origin + direction * t;
 	}
@@ -154,14 +174,13 @@ struct RayOld
 	/*!	
 	\return True je-li \a t menší než .
 	*/
-	bool closest_hit( const float t, Triangle * const triangle )
+	bool closest_hit(const float t, Triangle* const triangle)
 	{
-
 		bool hit_confirmed = false;
 
 		//#pragma omp critical ( make_hit )
 		{
-			if ( ( t < this->t ) && ( t > 0 ) )
+			if ((t < this->t) && (t > 0))
 			{
 				this->t = t;
 				hit_confirmed = true;
@@ -174,17 +193,17 @@ struct RayOld
 
 	bool is_hit() const
 	{
-		return ( ( t > 0 ) && ( t < REAL_MAX ) && ( target != NULL ) );
+		return ((t > 0) && (t < REAL_MAX) && (target != NULL));
 	}
 
-	void set_direction( const Vector3 & direction )
+	void set_direction(const Vector3& direction)
 	{
 		this->direction = direction;
 		this->direction.normalize();
-		inv_direction = Vector3( 1 / this->direction.x, 1 / this->direction.y, 1 / this->direction.z );
-		direction_sign[0] = static_cast<char>( inv_direction.x < 0 ); // 0 pro <0,+inf> a 1 pro <-inf,0)
-		direction_sign[1] = static_cast<char>( inv_direction.y < 0 );
-		direction_sign[2] = static_cast<char>( inv_direction.z < 0 );
+		inv_direction = Vector3(1 / this->direction.x, 1 / this->direction.y, 1 / this->direction.z);
+		direction_sign[0] = static_cast<char>(inv_direction.x < 0); // 0 pro <0,+inf> a 1 pro <-inf,0)
+		direction_sign[1] = static_cast<char>(inv_direction.y < 0);
+		direction_sign[2] = static_cast<char>(inv_direction.z < 0);
 	}
 
 	static void no_rays_reset()

@@ -202,7 +202,6 @@
     <ClCompile Include="PathTracer.cpp" />
     <ClCompile Include="RayTracer.cpp" />
     <ClCompile Include="ReflectionSampler.cpp" />
-    <ClCompile Include="RefractionSampler.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -230,13 +229,14 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="CubeMap.h" />
+    <ClInclude Include="CustomScene.h" />
     <ClInclude Include="ImportantSampler.h" />
+    <ClInclude Include="Intersector.h" />
     <ClInclude Include="objloader.h" />
     <ClInclude Include="PathTracer.h" />
     <ClInclude Include="RayPayload.h" />
     <ClInclude Include="RayTracer.h" />
     <ClInclude Include="ReflectionSampler.h" />
-    <ClInclude Include="RefractionSampler.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="stdafx.h" />

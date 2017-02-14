@@ -55,7 +55,6 @@ Color4 RayTracer::reflectedColor(RayPayload& load, uint nest, Vector3 rd) const
 
 Color4 RayTracer::trace(Ray& ray, uint nest, float iorBefore) const
 {
-	rtcIntersect(scene, ray);
 	RayPayload load = this->getRayPayload(ray);
 
 	if (ray.isCollided())

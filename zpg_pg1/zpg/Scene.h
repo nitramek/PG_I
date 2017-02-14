@@ -2,6 +2,7 @@
 #include "stdafx.h"
 class Scene
 {
+protected:
 	std::vector<Surface *> surfaces;
 	std::vector<Material *> materials;
 	std::unique_ptr<CubeMap> cubeMap;
@@ -15,13 +16,15 @@ class Scene
 	std::unique_ptr<Tracer> tracer;
 	int nest;
 	int super_samples;
-	RayPayload resolveRay(Ray& collidedRay) const;
+	virtual RayPayload resolveRay(Ray& collidedRay) const;
+
 
 
 public:
+	
 	void initEmbree(RTCDevice& device);
 	Scene(RTCDevice& device, uint width, uint height, std::string tracing, int nest, int super_samples, std::unique_ptr<Sampler> sampler);
-	~Scene();
+	virtual ~Scene();
 
 	void drawIn(std::string window_name);
 };

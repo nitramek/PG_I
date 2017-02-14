@@ -14,7 +14,6 @@ Color4 PathTracer::trace(Ray& ray, uint nest)
 
 Color4 PathTracer::_trace(Ray& ray, uint nest, float beforeIor)
 {
-	rtcIntersect(scene, ray);
 	RayPayload load = getRayPayload(ray);
 	if (nest == 0)
 	{

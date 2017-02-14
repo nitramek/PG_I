@@ -31,6 +31,9 @@
     <Filter Include="Header Files\tracing">
       <UniqueIdentifier>{e4dd1c29-49a5-42f6-a3f6-434f12a573e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\gpg">
+      <UniqueIdentifier>{642f0cc7-6c1b-4d51-8952-80bdd2687763}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -106,9 +109,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ReflectionSampler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RefractionSampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -197,7 +197,10 @@
     <ClInclude Include="ReflectionSampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RefractionSampler.h">
+    <ClInclude Include="Intersector.h">
+      <Filter>Header Files\gpg</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

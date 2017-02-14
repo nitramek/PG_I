@@ -68,8 +68,8 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	this->height = height;
 	this->super_samples = super_samples;
 	//
-	if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
-	//if (LoadOBJ("../../data/geosphere.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
+	//if (LoadOBJ("../../data/6887_allied_avenger.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
+	if (LoadOBJ("../../data/geosphere.obj", Vector3(0.5f, 0.5f, 0.5f), this->surfaces, this->materials) < 0)
 	{
 		throw std::exception("Could not load object");
 	}
@@ -85,8 +85,8 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	//	Vector3(70.f, -40.5f, 5.0f), DEG2RAD(42.185f));
 	//this->camera = new Camera(width, height, Vector3(-400.0f, -500.0f, 370.0f), Vector3(70.0f, -40.5f, 5.0f), DEG2RAD(40.0f));
 
-	Vector3 viewFrom = Vector3(-140.0f, -175.0f, 110.0f);
-	//Vector3 viewFrom = Vector3(3.0f, 0.0f, 0.0f);
+
+
 	/*viewFrom.x = 0;
 	viewFrom.y = -300;*/
 	/*viewFrom.z = 150;*/
@@ -95,8 +95,15 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	//kladne z - nad lodi
 	//zaporne x - vlevo od lodi
 
-	this->camera = std::make_unique<Camera>(width, height, viewFrom, Vector3(0.0f, 0.0f, 40.0f), DEG2RAD(42.185f));
-	//this->camera = std::make_unique<Camera>(width, height, viewFrom, Vector3(0.0f, 0.0f, 0.f), DEG2RAD(42.185f));
+	//lod
+	/*Vector3 viewFrom = Vector3(-140.0f, -175.0f, 110.0f);
+	Vector3 viewAt = Vector3(0.0f, 0.0f, 40.0f);
+	this->camera = std::make_unique<Camera>(width, height, viewFrom, viewAt, DEG2RAD(42.185f));*/
+
+	//koule
+	Vector3 viewFrom = Vector3(3.0f, 0.0f, 0.0f);
+	Vector3 viewAt = Vector3(0.0f, 0.0f, 0.f);
+	this->camera = std::make_unique<Camera>(width, height, viewFrom, viewAt, DEG2RAD(42.185f));
 
 	//this->camera->view_from(),
 	/*viewFrom.z = 0.f;
@@ -117,6 +124,7 @@ Scene::~Scene()
 
 RayPayload Scene::resolveRay(Ray& collidedRay) const
 {
+	rtcIntersect(scene, collidedRay);
 	if (collidedRay.isCollided())
 	{
 		Surface* surface = this->surfaces[collidedRay.geomID];
@@ -165,7 +173,7 @@ void Scene::drawIn(std::string window_name)
 	bool superSample = this->super_samples > 1;
 	int halfSamples = this->super_samples / 2;
 	float sampleWidth = 0.5 / this->super_samples;
-#pragma omp parallel for schedule(dynamic, 5)  shared(obj,superSample, halfSamples)
+//#pragma omp parallel for schedule(dynamic, 5)  shared(obj,superSample, halfSamples)
 	for (int row = 0; row < lambertImg.rows; row++)
 	{
 		for (int col = 0; col < lambertImg.cols; col++)

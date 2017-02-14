@@ -153,6 +153,8 @@ public:
 	friend void operator*=( Vector3 & v, const float a );
 	friend void operator/=( Vector3 & v, const float a );	
 
+	friend bool operator==(Vector3& v1, Vector3& v2);
+
 	// --- konverze ------
 
 };

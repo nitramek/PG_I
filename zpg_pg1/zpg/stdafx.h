@@ -67,7 +67,7 @@
 #include "ray.h"
 
 #include "objloader.h"
-
+#include "Intersector.h"
 #include "camera.h"
 #include "CubeMap.h"
 #include "RayPayload.h"
@@ -76,7 +76,9 @@ typedef std::function<RayPayload(Ray&)> RayResolver;
 #include "RayTracer.h"
 #include "PathTracer.h"
 #include "Scene.h"
+#include "CustomScene.h"
 #include "Sampler.h"
 #include "UniformSampler.h"
 #include "ImportantSampler.h"
 #include "ReflectionSampler.h"
+
