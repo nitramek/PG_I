@@ -100,7 +100,7 @@ struct Ray : RTCRay
 
 	bool isCollided()
 	{
-		return this->geomID != RTC_INVALID_GEOMETRY_ID;
+		return this->geomID != RTC_INVALID_GEOMETRY_ID && this->tfar >= 0;
 	}
 
 	Ray& intersect(RTCScene& scene)

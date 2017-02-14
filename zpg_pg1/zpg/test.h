@@ -36,8 +36,15 @@ namespace Testing
 		Vector3 normal = ray.collided_normal;
 		EXPECT(position == Vector3(0.f, 0.f, -2.f), "Position passed");
 		EXPECT(normal == Vector3(0.f, 0.f, -1.f), "Normal passed");
+		Ray passThrough = Ray(position, Vector3(0.f, 0.f, 1.f), 0.01f);
+		Intersector::intersect(passThrough, sphere_area);
+		Vector3 passThroughCollision = passThrough.collidedPosition();
+		EXPECT(passThroughCollision == Vector3(0.f, 0.f, 2.f), "Passthrough colision");
 		return finalTest;
 	}
+
+
+
 	static bool testAll()
 	{
 		bool result = true;

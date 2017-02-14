@@ -22,7 +22,8 @@ namespace Intersector
 		double discriminant = SQR(b) - 4 * c;
 		if (discriminant >= 0)
 		{
-			if (discriminant == 0)
+			discriminant = sqrt(discriminant);
+			if (FLOAT_EQ(discriminant,0))
 			{
 				double t = -b / 2.0;
 				ray.tfar = t;
@@ -31,18 +32,16 @@ namespace Intersector
 			{
 				double t1 = (-b + discriminant) / 2.0;
 				double t2 = (-b - discriminant) / 2.0;
-				ray.tfar = t2;
-				Vector3 t1Dir = ray.eval(t1);
-				Vector3 t2Dir = ray.eval(t2);
-				if (t1Dir.L2Norm() < t2Dir.L2Norm())
-				{
-					ray.tfar = t1;
-				}
-				else
+				if (t2 > ray.tnear)
 				{
 					ray.tfar = t2;
 				}
+				else
+				{
+					ray.tfar = t1;
+				}
 			}
+			ray.customIntersector = true;
 			ray.collided_normal = ray.eval(ray.tfar) - S;
 			ray.collided_normal.normalize();
 			ray.geomID = 0;

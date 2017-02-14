@@ -101,8 +101,8 @@ Scene::Scene(RTCDevice& device, uint width, uint height, std::string tracing, in
 	this->camera = std::make_unique<Camera>(width, height, viewFrom, viewAt, DEG2RAD(42.185f));*/
 
 	//koule
-	Vector3 viewFrom = Vector3(3.0f, 0.0f, 0.0f);
-	Vector3 viewAt = Vector3(0.0f, 0.0f, 0.f);
+	Vector3 viewFrom = Vector3(-5.0f, 0.0f, 0.0f);
+	Vector3 viewAt = Vector3(1.f, 0.0f, 0.f);
 	this->camera = std::make_unique<Camera>(width, height, viewFrom, viewAt, DEG2RAD(42.185f));
 
 	//this->camera->view_from(),

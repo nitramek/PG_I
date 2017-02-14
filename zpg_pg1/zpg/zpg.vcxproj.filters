@@ -34,6 +34,9 @@
     <Filter Include="Header Files\gpg">
       <UniqueIdentifier>{642f0cc7-6c1b-4d51-8952-80bdd2687763}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tests">
+      <UniqueIdentifier>{a9f35f08-1a49-4f67-9f0f-86bbfbaa7d89}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -202,6 +205,9 @@
     </ClInclude>
     <ClInclude Include="CustomScene.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="test.h">
+      <Filter>Source Files\tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

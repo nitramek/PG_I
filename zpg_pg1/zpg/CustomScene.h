@@ -9,7 +9,7 @@ public:
 	CustomScene(RTCDevice& device, uint width, uint height, const std::string& tracing, int nest, int super_samples, std::unique_ptr<Sampler> sampler)
 		: Scene(device, width, height, tracing, nest, super_samples, std::move(sampler))
 	{
-		sphere = SphereArea{ Vector3(0.f), 0.5f };
+		sphere = SphereArea{ Vector3(0.f), 1.f };
 	}
 
 	RayPayload resolveRay(Ray& collidedRay) const override;
@@ -17,14 +17,14 @@ public:
 
 inline RayPayload CustomScene::resolveRay(Ray& collidedRay) const
 {
-	Ray intersected = Intersector::intersect(collidedRay, sphere);
+	Intersector::intersect(collidedRay, sphere);
 	if (collidedRay.isCollided())
 	{
 		Surface* surface = this->surfaces[0];
 		Material* material = surface->get_material();
 		material->set_name("Nope");
 		Vector3 position = collidedRay.eval(collidedRay.tfar);
-		Vector3 normal = intersected.collided_normal;
+		Vector3 normal = collidedRay.collided_normal;
 		if (collidedRay.direction().dot(normal) > 0)
 		{
 			normal = -normal;

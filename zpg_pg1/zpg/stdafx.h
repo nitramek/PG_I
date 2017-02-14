@@ -48,6 +48,7 @@
 #define MAX( a, b ) ( ( a > b )? ( a ) : ( b ) )
 #endif
 
+#define FLOAT_EQ(f1, f2) f1 >= f2 - EPSILON && f1 <= f2 + EPSILON
 #include "utils.h"
 
 #include "vector2.h"

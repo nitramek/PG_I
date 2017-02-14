@@ -251,7 +251,7 @@ void operator/=( Vector3 & v, const float a )
 
 bool operator==(Vector3& v1, Vector3& v2)
 {
-	return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
+	return FLOAT_EQ(v1.x, v2.x) && FLOAT_EQ(v1.y, v2.y) && FLOAT_EQ(v1.z, v2.z);
 }
 
 

@@ -82,7 +82,7 @@ Color4 RayTracer::trace(Ray& ray, uint nest, float iorBefore) const
 		float diffuseSlider = 1.0f - load.material->reflectivity;
 		float specularSlider = load.material->reflectivity;
 
-		return load.ambient_color +
+		return load.ambient_color * load.light->ambient +
 			diffuse * inShadow * diffuseSlider +
 			specular * specularSlider * reflected_color;
 	}
