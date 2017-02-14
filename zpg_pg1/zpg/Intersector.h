@@ -40,6 +40,11 @@ namespace Intersector
 				{
 					ray.tfar = t1;
 				}
+				if (t1 < ray.tnear && t2 < ray.tnear) //pokud se oba trefili za
+				{
+					ray.geomID = RTC_INVALID_GEOMETRY_ID;
+					return ray;
+				}
 			}
 			ray.customIntersector = true;
 			ray.collided_normal = ray.eval(ray.tfar) - S;

@@ -7,7 +7,7 @@ class CustomScene: public Scene
 public:
 
 	CustomScene(RTCDevice& device, uint width, uint height, const std::string& tracing, int nest, int super_samples, std::unique_ptr<Sampler> sampler)
-		: Scene(device, width, height, tracing, nest, super_samples, std::move(sampler))
+		: Scene(device, width, height, tracing, nest, 1, nullptr)
 	{
 		sphere = SphereArea{ Vector3(0.f), 1.f };
 	}
@@ -22,7 +22,6 @@ inline RayPayload CustomScene::resolveRay(Ray& collidedRay) const
 	{
 		Surface* surface = this->surfaces[0];
 		Material* material = surface->get_material();
-		material->set_name("Nope");
 		Vector3 position = collidedRay.eval(collidedRay.tfar);
 		Vector3 normal = collidedRay.collided_normal;
 		if (collidedRay.direction().dot(normal) > 0)
@@ -32,6 +31,7 @@ inline RayPayload CustomScene::resolveRay(Ray& collidedRay) const
 		Color4 ambient_color = material->ambient;
 		Color4 diffuse_color = material->diffuse;
 		Color4 specular_color = material->specular;
+		//material->reflectivity = 1;
 
 
 		const OmniLight* light = this->light.get();
