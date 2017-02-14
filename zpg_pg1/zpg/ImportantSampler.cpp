@@ -31,18 +31,23 @@ std::tuple<Color4, Vector3> ImportantSampler::sample(const Vector3& incoming_dir
 {
 	Vector3 outcoming_direction = next_direction().normalize();
 	
+	
 	// normal je osa z
 	Vector3 o1 = orthogonal(normal).normalize(); // o1 je pomocna osa x
 	Vector3 o2 = o1.CrossProduct(normal).normalize(); // o2 je pomocna osa y
 
-	outcoming_direction = Vector3(
-		o1.x * outcoming_direction.x + o2.x * outcoming_direction.y + normal.x * outcoming_direction.z,
-		o1.y * outcoming_direction.x + o2.y * outcoming_direction.y + normal.y * outcoming_direction.z,
-		o1.z * outcoming_direction.x + o2.z * outcoming_direction.y + normal.z * outcoming_direction.z
-	).normalize(); // direction je vstupni vektor, ktery chcete "posadit" do ws
+	//outcoming_direction = Vector3(
+	//	o1.x * outcoming_direction.x + o2.x * outcoming_direction.y + normal.x * outcoming_direction.z,
+	//	o1.y * outcoming_direction.x + o2.y * outcoming_direction.y + normal.y * outcoming_direction.z,
+	//	o1.z * outcoming_direction.x + o2.z * outcoming_direction.y + normal.z * outcoming_direction.z
+	//).normalize(); // direction je vstupni vektor, ktery chcete "posadit" do ws
 	float cos_out = normal.dot(outcoming_direction);
 	////} //"posun na nasi polokouli"
-
+	if(cos_out < 0)
+	{
+		outcoming_direction = -outcoming_direction;
+		cos_out = normal.dot(outcoming_direction);
+	}
 	//while (cos_out < 0.6f){
 	// 
 	//	outcoming_direction = next_direction().normalize();
